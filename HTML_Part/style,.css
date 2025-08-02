@@ -1,0 +1,196 @@
+/* Basic Reset and Layout Setup */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Styles */
+header {
+  width: 100%;
+  padding: 20px 40px;
+  background-color: #f5f8fc;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.nav-left li a,
+.nav-right li button {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+}
+
+.login {
+  background: transparent;
+  border: 1px solid #ccc;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.signup {
+  background: #f2f2ff;
+  color: #5f3dc4;
+  border: 1px solid #c6bfff;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Main Content */
+main {
+  flex: 1;
+  text-align: center;
+  margin-top: 100px;
+}
+
+.logo {
+  font-size: 48px;
+  font-weight: 600;
+}
+
+.logo-bar {
+  color: #00b341;
+  font-size: 30px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.subtitle {
+  margin: 10px 0 40px;
+  font-size: 18px;
+  color: #555;
+}
+
+.search-box input {
+  width: 400px;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: 1px solid #a59ed7;
+  border-radius: 8px;
+  outline: none;
+}
+
+.or-analyse {
+  margin: 30px 0 10px;
+  font-size: 15px;
+  color: #666;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.tags span {
+  background: #f2f5fa;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.tags span:hover {
+  background: #dce8f4;
+}
+
+/* Footer Styles */
+footer {
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  padding: 40px 60px;
+  font-size: 14px;
+  color: #333;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.footer-left {
+  max-width: 400px;
+  line-height: 1.8;
+}
+
+.footer-logo {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.footer-left a {
+  color: #1a73e8;
+  text-decoration: underline;
+  font-size: 13px;
+}
+
+.footer-right {
+  display: flex;
+  gap: 80px;
+  flex-wrap: wrap;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.footer-col strong {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.footer-col a {
+  text-decoration: none;
+  color: #444;
+  transition: color 0.2s;
+}
+
+.footer-col a:hover {
+  color: #000;
+}
+
+.install-btn {
+  background: #f2f2ff;
+  color: #5f3dc4;
+  border: 1px solid #c6bfff;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  margin-top: 6px;
+  cursor: pointer;
+}
