@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StocX - Track Stocks Like a Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-brand" style="text-align: left;">
+                <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 3v18h18"/>
+                    <path d="m19 9-5 5-4-4-3 3"/>
+                </svg>
+                <h1 class="header-title">StocX</h1>
+            </div>
+            <button class="btn btn-outline" onclick="goToDashboard()">
+                Enter Dashboard
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m9 18 6-6-6-6"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">Track Stocks Like a Pro</h1>
+                <p class="hero-description">
+                    Monitor your investments, analyze market trends, and make informed trading decisions 
+                    with our comprehensive stock tracking platform.
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary btn-lg" onclick="goToDashboard()">
+                        Start Tracking Now
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m9 18 6-6-6-6"/>
+                        </svg>
+                    </button>
+                    <button class="btn btn-outline btn-lg">View Demo</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Preview Section -->
+    <section class="market-preview">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">Live Market Preview</h2>
+                <p class="section-description">See real-time market data for popular stocks</p>
+            </div>
+            
+            <div class="market-grid">
+                <div class="market-card">
+                    <div class="market-card-header">
+                        <h3 class="market-symbol">AAPL</h3>
+                        <div class="trend-indicator positive">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m7 14 5-5 5 5"/>
+                                <path d="m7 14 5-5 5 5"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="market-price">$189.84</div>
+                    <div class="market-change positive">+1.31%</div>
+                </div>
+
+                <div class="market-card">
+                    <div class="market-card-header">
+                        <h3 class="market-symbol">GOOGL</h3>
+                        <div class="trend-indicator negative">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m7 14 5-5 5 5"/>
+                                <path d="m7 14 5-5 5 5"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="market-price">$2,847.32</div>
+                    <div class="market-change negative">-0.43%</div>
+                </div>
+
+                <div class="market-card">
+                    <div class="market-card-header">
+                        <h3 class="market-symbol">MSFT</h3>
+                        <div class="trend-indicator positive">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m7 14 5-5 5 5"/>
+                                <path d="m7 14 5-5 5 5"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="market-price">$412.78</div>
+                    <div class="market-change positive">+1.39%</div>
+                </div>
+
+                <div class="market-card">
+                    <div class="market-card-header">
+                        <h3 class="market-symbol">TSLA</h3>
+                        <div class="trend-indicator negative">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m7 14 5-5 5 5"/>
+                                <path d="m7 14 5-5 5 5"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="market-price">$248.91</div>
+                    <div class="market-change negative">-3.24%</div>
+                </div>
+            </div>
+            
+            
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">Everything You Need to Track Stocks</h2>
+                <p class="section-description">Powerful tools and insights to help you make smarter investment decisions</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m7 14 5-5 5 5"/>
+                            <path d="m7 14 5-5 5 5"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Real-Time Data</h3>
+                    <p class="feature-description">Get live stock prices and market data updated in real-time to make informed decisions.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Personal Watchlist</h3>
+                    <p class="feature-description">Create and manage your personalized watchlist to track your favorite stocks effortlessly.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3v18h18"/>
+                            <path d="m19 9-5 5-4-4-3 3"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Interactive Charts</h3>
+                    <p class="feature-description">Visualize stock performance with beautiful, interactive charts and technical indicators.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Market Analysis</h3>
+                    <p class="feature-description">Access comprehensive market analysis, news, and insights to stay ahead of trends.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                            <path d="M12 18h.01"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Mobile Optimized</h3>
+                    <p class="feature-description">Trade and monitor your portfolio seamlessly across desktop and mobile devices.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="m4.93 4.93 4.24 4.24"/>
+                            <path d="m14.83 9.17 4.24-4.24"/>
+                            <path d="m14.83 14.83 4.24 4.24"/>
+                            <path d="m9.17 14.83-4.24 4.24"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Global Markets</h3>
+                    <p class="feature-description">Track stocks from major exchanges worldwide including NYSE, NASDAQ, and more.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 3v18h18"/>
+                    <path d="m19 9-5 5-4-4-3 3"/>
+                </svg>
+                <span class="footer-title">StocX</span>
+            </div>
+            <p class="footer-text">© 2025 StocX. Built for Hackathon, by PICTians.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
