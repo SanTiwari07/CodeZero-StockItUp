@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - StockTracker India</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header dashboard-header">
+        <div class="header-container">
+            <div class="header-brand">
+                <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 3v18h18"/>
+                    <path d="m19 9-5 5-4-4-3 3"/>
+                </svg>
+                <h1 class="header-title">StockTracker India</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-ghost btn-sm" onclick="goToHomepage()">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9,22 9,12 15,12 15,22"/>
+                    </svg>
+                    Home
+                </button>
+                <div class="search-container">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search Indian stocks (e.g., TCS, HDFC)..." id="searchInput">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <!-- Market Overview -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Indian Markets</h3>
+                    <div class="market-overview">
+                        <div class="overview-item">
+                            <span class="overview-name">Nifty 50</span>
+                            <div class="overview-values">
+                                <div class="overview-value" id="nifty-price">Loading...</div>
+                                <div class="overview-change" id="nifty-change">--</div>
+                            </div>
+                        </div>
+                        <div class="overview-item">
+                            <span class="overview-name">Sensex</span>
+                            <div class="overview-values">
+                                <div class="overview-value" id="sensex-price">Loading...</div>
+                                <div class="overview-change" id="sensex-change">--</div>
+                            </div>
+                        </div>
+                        <div class="overview-item">
+                            <span class="overview-name">Bank Nifty</span>
+                            <div class="overview-values">
+                                <div class="overview-value" id="banknifty-price">Loading...</div>
+                                <div class="overview-change" id="banknifty-change">--</div>
+                            </div>
+                        </div>
+                        <div class="overview-item">
+                            <span class="overview-name">Nifty IT</span>
+                            <div class="overview-values">
+                                <div class="overview-value" id="niftyit-price">Loading...</div>
+                                <div class="overview-change" id="niftyit-change">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trending Stocks -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Trending Stocks</h3>
+                    <div class="trending-list" id="trendingList">
+                        <!-- Trending stock items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab-list">
+                    <button class="tab-button active" data-tab="overview">Overview</button>
+                    <button class="tab-button" data-tab="watchlist">Watchlist</button>
+                    <button class="tab-button" data-tab="news">News</button>
+                </div>
+
+                <!-- Overview Tab -->
+                <div class="tab-content active" id="overview">
+                    <!-- Selected Stock Details -->
+                    <div class="card stock-details">
+                        <div class="card-header">
+                            <div class="stock-header">
+                                <div class="stock-title-section">
+                                    <div class="company-info">
+                                        <div class="company-logo" id="companyLogo">
+                                            <div class="logo-placeholder" id="logoPlaceholder">TCS</div>
+                                            <img id="logoImage" style="display: none;" alt="Company Logo">
+                                        </div>
+                                        <div class="company-details">
+                                            <h2 class="stock-symbol" id="selectedSymbol">TCS.NS</h2>
+                                            <span class="badge" id="selectedName">Tata Consultancy Services</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline" id="watchlistBtn" onclick="toggleSelectedWatchlist()">
+                                    <svg class="btn-icon watchlist-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                                    </svg>
+                                    <span id="watchlistBtnText">Add to Watchlist</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="stock-details-grid">
+                                <div class="stock-info">
+                                    <div class="stock-price-section">
+                                        <div class="stock-price" id="selectedPrice">₹3,421.50</div>
+                                        <div class="stock-change" id="selectedChange">
+                                            <svg class="change-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="m7 14 5-5 5 5"/>
+                                            </svg>
+                                            <span>+₹45.25 (+1.34%)</span>
+                                        </div>
+                                    </div>
+                                    <div class="stock-metrics">
+                                        <div class="metric">
+                                            <span class="metric-label">Volume:</span>
+                                            <div class="metric-value" id="selectedVolume">2.4M</div>
+                                        </div>
+                                        <div class="metric">
+                                            <span class="metric-label">Market Cap:</span>
+                                            <div class="metric-value" id="selectedMarketCap">₹12.45L Cr</div>
+                                        </div>
+                                        <div class="metric">
+                                            <span class="metric-label">Day High:</span>
+                                            <div class="metric-value" id="selectedHigh">₹3,455.80</div>
+                                        </div>
+                                        <div class="metric">
+                                            <span class="metric-label">Day Low:</span>
+                                            <div class="metric-value" id="selectedLow">₹3,398.20</div>
+                                        </div>
+                                        <div class="metric">
+                                            <span class="metric-label">Open:</span>
+                                            <div class="metric-value" id="selectedOpen">₹3,410.00</div>
+                                        </div>
+                                        <div class="metric">
+                                            <span class="metric-label">Prev Close:</span>
+                                            <div class="metric-value" id="selectedPrevClose">₹3,376.25</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="stockChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Company Information -->
+                    <div class="card" id="companyInfoCard">
+                        <div class="card-header">
+                            <h3 class="card-title">Company Information</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="company-description" id="companyDescription">
+                                Loading company information...
+                            </div>
+                            <div class="company-stats" id="companyStats" style="margin-top: 1rem;">
+                                <!-- Company stats will be populated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Watchlist Tab -->
+                <div class="tab-content" id="watchlist">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">My Watchlist</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="watchlist-content" id="watchlistContent">
+                                <!-- Watchlist items will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Tab -->
+                <div class="tab-content" id="news">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="news-header">
+                                <svg class="news-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+                                    <path d="M18 14h-8"/>
+                                    <path d="M15 18h-5"/>
+                                    <path d="M10 6h8v4h-8V6Z"/>
+                                </svg>
+                                <h3 class="card-title">Indian Market News</h3>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="news-list" id="newsList">
+                                <div class="news-item">
+                                    <h4 class="news-title">RBI Monetary Policy Decision Awaited</h4>
+                                    <p class="news-time">2 hours ago</p>
+                                </div>
+                                <div class="news-item">
+                                    <h4 class="news-title">IT Sector Shows Strong Q3 Results</h4>
+                                    <p class="news-time">4 hours ago</p>
+                                </div>
+                                <div class="news-item">
+                                    <h4 class="news-title">FII Inflows Boost Market Sentiment</h4>
+                                    <p class="news-time">6 hours ago</p>
+                                </div>
+                                <div class="news-item">
+                                    <h4 class="news-title">Banking Stocks Rally on Credit Growth</h4>
+                                    <p class="news-time">8 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
