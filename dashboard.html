@@ -3,242 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - StockTracker India</title>
+    <title>StockTracker Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header dashboard-header">
-        <div class="header-container">
-            <div class="header-brand">
-                <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 3v18h18"/>
-                    <path d="m19 9-5 5-4-4-3 3"/>
-                </svg>
-                <h1 class="header-title">StockTracker India</h1>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="dashboard-header-content">
+                <div class="dashboard-header-left">
+                    <div class="dashboard-brand">
+                        <i data-lucide="bar-chart-3" class="dashboard-icon"></i>
+                        <h1 class="dashboard-title">StockTracker</h1>
+                    </div>
+                    <div class="dashboard-status">
+                        <div class="status-badge" id="marketStatus">
+                            <div class="status-dot"></div>
+                            <span>Loading...</span>
+                        </div>
+                        <div class="status-badge" id="apiStatus">
+                            <i data-lucide="alert-circle" class="status-icon"></i>
+                            <span>Demo Data</span>
+                        </div>
+                    </div>
+                    <div class="last-updated" id="lastUpdated" style="display: none;">
+                        <i data-lucide="clock" class="update-icon"></i>
+                        <span>Last updated: <span id="updateTime"></span></span>
+                    </div>
+                </div>
+                <div class="dashboard-header-right">
+                    <button class="btn btn-primary btn-sm" id="autoRefreshBtn">
+                        <i data-lucide="refresh-cw" class="btn-icon" id="refreshIcon"></i>
+                        Auto-refresh
+                    </button>
+                    <button class="btn btn-ghost btn-sm" onclick="goToHomepage()">
+                        <i data-lucide="home" class="btn-icon"></i>
+                        Home
+                    </button>
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Search stocks (e.g., AAPL, Tesla)...">
+                        </div>
+                        <div class="search-results" id="searchResults"></div>
+                    </div>
+                </div>
             </div>
-            <div class="header-actions">
-                <button class="btn btn-ghost btn-sm" onclick="goToHomepage()">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                        <polyline points="9,22 9,12 15,12 15,22"/>
-                    </svg>
-                    Home
-                </button>
-                <div class="search-container">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.35-4.35"/>
-                    </svg>
-                    <input type="text" class="search-input" placeholder="Search Indian stocks (e.g., TCS, HDFC)..." id="searchInput">
+        </header>
+
+        <!-- API Status Alert -->
+        <div class="api-alert" id="apiAlert">
+            <div class="alert">
+                <i data-lucide="info" class="alert-icon"></i>
+                <div class="alert-content">
+                    <strong>Demo Mode:</strong> You're viewing realistic demo data. To get live market data, 
+                    <a href="https://finnhub.io/register" target="_blank" rel="noopener noreferrer" class="alert-link">
+                        get a free Finnhub API key
+                    </a> and update the configuration in script.js.
                 </div>
             </div>
         </div>
-    </header>
 
-    <div class="dashboard-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-content">
-                <!-- Market Overview -->
-                <div class="sidebar-section">
-                    <h3 class="sidebar-title">Indian Markets</h3>
-                    <div class="market-overview">
-                        <div class="overview-item">
-                            <span class="overview-name">Nifty 50</span>
-                            <div class="overview-values">
-                                <div class="overview-value" id="nifty-price">Loading...</div>
-                                <div class="overview-change" id="nifty-change">--</div>
-                            </div>
-                        </div>
-                        <div class="overview-item">
-                            <span class="overview-name">Sensex</span>
-                            <div class="overview-values">
-                                <div class="overview-value" id="sensex-price">Loading...</div>
-                                <div class="overview-change" id="sensex-change">--</div>
-                            </div>
-                        </div>
-                        <div class="overview-item">
-                            <span class="overview-name">Bank Nifty</span>
-                            <div class="overview-values">
-                                <div class="overview-value" id="banknifty-price">Loading...</div>
-                                <div class="overview-change" id="banknifty-change">--</div>
-                            </div>
-                        </div>
-                        <div class="overview-item">
-                            <span class="overview-name">Nifty IT</span>
-                            <div class="overview-values">
-                                <div class="overview-value" id="niftyit-price">Loading...</div>
-                                <div class="overview-change" id="niftyit-change">--</div>
-                            </div>
+        <div class="dashboard-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-content">
+                    <!-- Market Overview -->
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-heading">Market Overview</h3>
+                        <div class="market-indices" id="marketIndices">
+                            <div class="loading-text">Loading market data...</div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Trending Stocks -->
-                <div class="sidebar-section">
-                    <h3 class="sidebar-title">Trending Stocks</h3>
-                    <div class="trending-list" id="trendingList">
-                        <!-- Trending stock items will be populated by JavaScript -->
+                    <!-- Stock List -->
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-heading">Stocks</h3>
+                        <div class="loading-spinner" id="stocksLoading" style="display: none;">
+                            <i data-lucide="refresh-cw" class="spinner"></i>
+                            Loading...
+                        </div>
+                        <div class="stock-list" id="stockList"></div>
                     </div>
                 </div>
-            </div>
-        </aside>
+            </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Tabs -->
-            <div class="tabs">
-                <div class="tab-list">
-                    <button class="tab-button active" data-tab="overview">Overview</button>
-                    <button class="tab-button" data-tab="watchlist">Watchlist</button>
-                    <button class="tab-button" data-tab="news">News</button>
-                </div>
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="tabs">
+                    <div class="tabs-list">
+                        <button class="tab-trigger active" data-tab="overview">Overview</button>
+                        <button class="tab-trigger" data-tab="watchlist">Watchlist</button>
+                        <button class="tab-trigger" data-tab="news">News</button>
+                    </div>
 
-                <!-- Overview Tab -->
-                <div class="tab-content active" id="overview">
-                    <!-- Selected Stock Details -->
-                    <div class="card stock-details">
-                        <div class="card-header">
-                            <div class="stock-header">
-                                <div class="stock-title-section">
-                                    <div class="company-info">
-                                        <div class="company-logo" id="companyLogo">
-                                            <div class="logo-placeholder" id="logoPlaceholder">TCS</div>
-                                            <img id="logoImage" style="display: none;" alt="Company Logo">
+                    <!-- Overview Tab -->
+                    <div class="tab-content active" id="overview">
+                        <div id="selectedStockContent" style="display: none;">
+                            <!-- Selected Stock Details -->
+                            <div class="card stock-details-card">
+                                <div class="card-header">
+                                    <div class="stock-header">
+                                        <div class="stock-title-section">
+                                            <h2 class="stock-symbol" id="stockSymbol">AAPL</h2>
+                                            <div class="stock-badge" id="stockName">Apple Inc.</div>
+                                            <div class="stock-live-badge" id="liveBadge">
+                                                <i data-lucide="refresh-cw" class="live-icon"></i>
+                                                <span>Demo</span>
+                                            </div>
                                         </div>
-                                        <div class="company-details">
-                                            <h2 class="stock-symbol" id="selectedSymbol">TCS.NS</h2>
-                                            <span class="badge" id="selectedName">Tata Consultancy Services</span>
+                                        <button class="btn btn-outline" id="watchlistBtn">
+                                            <i data-lucide="star" class="btn-icon" id="watchlistIcon"></i>
+                                            <span id="watchlistText">Add to Watchlist</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-content">
+                                    <div class="stock-details-grid">
+                                        <!-- Stock Information -->
+                                        <div class="stock-info">
+                                            <!-- Price Section -->
+                                            <div class="price-section">
+                                                <div class="price-label">
+                                                    <i data-lucide="dollar-sign" class="price-icon"></i>
+                                                    <span>Current Price</span>
+                                                </div>
+                                                <div class="current-price" id="currentPrice">$189.84</div>
+                                                <div class="price-change" id="priceChange">
+                                                    <i data-lucide="trending-up" class="change-icon"></i>
+                                                    <span>+$2.45 (+1.31%)</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Key Metrics -->
+                                            <div class="metrics-grid">
+                                                <div class="metric">
+                                                    <div class="metric-label">Open</div>
+                                                    <div class="metric-value" id="openPrice">$188.50</div>
+                                                </div>
+                                                <div class="metric">
+                                                    <div class="metric-label">High</div>
+                                                    <div class="metric-value high" id="highPrice">$192.15</div>
+                                                </div>
+                                                <div class="metric">
+                                                    <div class="metric-label">Low</div>
+                                                    <div class="metric-value low" id="lowPrice">$187.20</div>
+                                                </div>
+                                                <div class="metric">
+                                                    <div class="metric-label">Volume</div>
+                                                    <div class="metric-value" id="volume">52.4M</div>
+                                                </div>
+                                                <div class="metric">
+                                                    <div class="metric-label">Market Cap</div>
+                                                    <div class="metric-value" id="marketCap">2.89T</div>
+                                                </div>
+                                                <div class="metric">
+                                                    <div class="metric-label">P/E Ratio</div>
+                                                    <div class="metric-value" id="peRatio">28.5</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Chart -->
+                                        <div class="chart-section">
+                                            <div class="chart-header">
+                                                <h4 class="chart-title">Intraday Chart</h4>
+                                                <div class="chart-info">
+                                                    <span class="chart-data-type" id="chartDataType">Demo data</span>
+                                                    <div class="chart-fallback-badge" id="fallbackBadge" style="display: none;">
+                                                        Fallback Chart
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="chart-container">
+                                                <canvas id="stockChart"></canvas>
+                                                <div class="chart-loading" id="chartLoading">
+                                                    <div>Loading chart data...</div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <button class="btn btn-outline" id="watchlistBtn" onclick="toggleSelectedWatchlist()">
-                                    <svg class="btn-icon watchlist-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                                    </svg>
-                                    <span id="watchlistBtnText">Add to Watchlist</span>
-                                </button>
+                            </div>
+
+                            <!-- Popular Stocks -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Popular Stocks</h3>
+                                </div>
+                                <div class="card-content">
+                                    <div class="popular-stocks-grid" id="popularStocks"></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-content">
-                            <div class="stock-details-grid">
-                                <div class="stock-info">
-                                    <div class="stock-price-section">
-                                        <div class="stock-price" id="selectedPrice">₹3,421.50</div>
-                                        <div class="stock-change" id="selectedChange">
-                                            <svg class="change-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="m7 14 5-5 5 5"/>
-                                            </svg>
-                                            <span>+₹45.25 (+1.34%)</span>
-                                        </div>
-                                    </div>
-                                    <div class="stock-metrics">
-                                        <div class="metric">
-                                            <span class="metric-label">Volume:</span>
-                                            <div class="metric-value" id="selectedVolume">2.4M</div>
-                                        </div>
-                                        <div class="metric">
-                                            <span class="metric-label">Market Cap:</span>
-                                            <div class="metric-value" id="selectedMarketCap">₹12.45L Cr</div>
-                                        </div>
-                                        <div class="metric">
-                                            <span class="metric-label">Day High:</span>
-                                            <div class="metric-value" id="selectedHigh">₹3,455.80</div>
-                                        </div>
-                                        <div class="metric">
-                                            <span class="metric-label">Day Low:</span>
-                                            <div class="metric-value" id="selectedLow">₹3,398.20</div>
-                                        </div>
-                                        <div class="metric">
-                                            <span class="metric-label">Open:</span>
-                                            <div class="metric-value" id="selectedOpen">₹3,410.00</div>
-                                        </div>
-                                        <div class="metric">
-                                            <span class="metric-label">Prev Close:</span>
-                                            <div class="metric-value" id="selectedPrevClose">₹3,376.25</div>
-                                        </div>
+                    </div>
+
+                    <!-- Watchlist Tab -->
+                    <div class="tab-content" id="watchlist">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">My Watchlist</h3>
+                            </div>
+                            <div class="card-content">
+                                <div id="watchlistContent">
+                                    <div class="empty-state">
+                                        <p>Your watchlist is empty. Add stocks by clicking the star icon.</p>
                                     </div>
                                 </div>
-                                <div class="chart-container">
-                                    <canvas id="stockChart" width="400" height="200"></canvas>
-                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Company Information -->
-                    <div class="card" id="companyInfoCard">
-                        <div class="card-header">
-                            <h3 class="card-title">Company Information</h3>
-                        </div>
-                        <div class="card-content">
-                            <div class="company-description" id="companyDescription">
-                                Loading company information...
+                    <!-- News Tab -->
+                    <div class="tab-content" id="news">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i data-lucide="newspaper" class="card-icon"></i>
+                                    Market News
+                                </h3>
                             </div>
-                            <div class="company-stats" id="companyStats" style="margin-top: 1rem;">
-                                <!-- Company stats will be populated -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Watchlist Tab -->
-                <div class="tab-content" id="watchlist">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">My Watchlist</h3>
-                        </div>
-                        <div class="card-content">
-                            <div class="watchlist-content" id="watchlistContent">
-                                <!-- Watchlist items will be populated by JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- News Tab -->
-                <div class="tab-content" id="news">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="news-header">
-                                <svg class="news-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
-                                    <path d="M18 14h-8"/>
-                                    <path d="M15 18h-5"/>
-                                    <path d="M10 6h8v4h-8V6Z"/>
-                                </svg>
-                                <h3 class="card-title">Indian Market News</h3>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="news-list" id="newsList">
-                                <div class="news-item">
-                                    <h4 class="news-title">RBI Monetary Policy Decision Awaited</h4>
-                                    <p class="news-time">2 hours ago</p>
-                                </div>
-                                <div class="news-item">
-                                    <h4 class="news-title">IT Sector Shows Strong Q3 Results</h4>
-                                    <p class="news-time">4 hours ago</p>
-                                </div>
-                                <div class="news-item">
-                                    <h4 class="news-title">FII Inflows Boost Market Sentiment</h4>
-                                    <p class="news-time">6 hours ago</p>
-                                </div>
-                                <div class="news-item">
-                                    <h4 class="news-title">Banking Stocks Rally on Credit Growth</h4>
-                                    <p class="news-time">8 hours ago</p>
+                            <div class="card-content">
+                                <div id="newsContent">
+                                    <div class="loading-text">Loading market news...</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            initializeDashboard();
+        });
+
+        function goToHomepage() {
+            window.location.href = 'index.html';
+        }
+    </script>
 </body>
 </html>
