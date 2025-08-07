@@ -3,251 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockItUp Dashboard</title>
+    <title>Dashboard - StockTracker</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="dashboard">
-        <!-- Header -->
-        <header class="dashboard-header">
-            <div class="dashboard-header-content">
-                <div class="dashboard-header-left">
-                    <div class="dashboard-brand">
-                        <i data-lucide="bar-chart-3" class="dashboard-icon"></i>
-                        <h1 class="dashboard-title">StockItUp</h1>
-                    </div>
-                    <div class="dashboard-status">
-                        <div class="status-badge" id="marketStatus">
-                            <div class="status-dot"></div>
-                            <span>Loading...</span>
-                        </div>
-                        <div class="status-badge" id="apiStatus">
-                            <i data-lucide="alert-circle" class="status-icon"></i>
-                            <span>Demo Data</span>
-                        </div>
-                    </div>
-                    <div class="last-updated" id="lastUpdated" style="display: none;">
-                        <i data-lucide="clock" class="update-icon"></i>
-                        <span>Last updated: <span id="updateTime"></span></span>
-                    </div>
-                </div>
-                <div class="dashboard-header-right">
-                    <button class="btn btn-primary btn-sm" id="autoRefreshBtn">
-                        <i data-lucide="refresh-cw" class="btn-icon" id="refreshIcon"></i>
-                        Auto-refresh
-                    </button>
-                    <button class="btn btn-ghost btn-sm" onclick="goToHomepage()">
-                        <i data-lucide="home" class="btn-icon"></i>
-                        Home
-                    </button>
-                    <div class="search-container">
-                        <div class="search-input-wrapper">
-                            <i data-lucide="search" class="search-icon"></i>
-                            <input type="text" id="searchInput" class="search-input" placeholder="Search stocks (e.g., AAPL, Tesla)...">
-                        </div>
-                        <div class="search-results" id="searchResults"></div>
-                    </div>
+    <!-- Header -->
+    <header class="header dashboard-header">
+        <div class="header-container">
+            <div class="header-brand">
+                <i data-lucide="bar-chart-3" class="header-icon"></i>
+                <h1 class="header-title">StockTracker</h1>
+                <div class="header-status" id="connectionStatus">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <span id="lastUpdatedText">Connecting...</span>
                 </div>
             </div>
-        </header>
-
-        <!-- API Status Alert -->
-        <div class="api-alert" id="apiAlert">
-            <div class="alert">
-                <i data-lucide="info" class="alert-icon"></i>
-                <div class="alert-content">
-                    <strong>Demo Mode:</strong> You're viewing realistic demo data. To get live market data, 
-                    <a href="https://finnhub.io/register" target="_blank" rel="noopener noreferrer" class="alert-link">
-                        get a free Finnhub API key
-                    </a> and update the configuration in script.js.
+            <div class="header-actions">
+                <!-- Dark Mode Toggle -->
+                <button class="btn btn-ghost btn-sm theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                    <i data-lucide="sun" class="theme-icon sun-icon"></i>
+                    <i data-lucide="moon" class="theme-icon moon-icon"></i>
+                </button>
+                
+                <!-- Auto Refresh Toggle -->
+                <button class="btn btn-outline btn-sm" id="autoRefreshBtn" onclick="toggleAutoRefresh()">
+                    <i data-lucide="refresh-cw" class="btn-icon" id="refreshIcon"></i>
+                    <span id="autoRefreshText">Auto-refresh</span>
+                </button>
+                
+                <!-- Home Button -->
+                <button class="btn btn-ghost btn-sm" onclick="goToHomepage()">
+                    <i data-lucide="home" class="btn-icon"></i>
+                    Home
+                </button>
+                
+                <!-- Search -->
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" class="search-input" placeholder="    Search stocks..." id="searchInput">
+                    <div class="search-results" id="searchResults"></div>
                 </div>
             </div>
         </div>
+    </header>
 
-        <div class="dashboard-content">
-            <!-- Sidebar -->
-            <aside class="sidebar">
-                <div class="sidebar-content">
-                    <!-- Market Overview -->
-                    <div class="sidebar-section">
-                        <h3 class="sidebar-heading">Market Overview</h3>
-                        <div class="market-indices" id="marketIndices">
-                            <div class="loading-text">Loading market data...</div>
-                        </div>
-                    </div>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-content">
 
-                    <!-- Stock List -->
-                    <div class="sidebar-section">
-                        <h3 class="sidebar-heading">Stocks</h3>
-                        <div class="loading-spinner" id="stocksLoading" style="display: none;">
-                            <i data-lucide="refresh-cw" class="spinner"></i>
-                            Loading...
+                <!-- Stock List -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Famous Stocks</h3>
+                    <div class="stock-list" id="stockList">
+                        <div class="loading-container">
+                            <div class="loading-spinner"></div>
+                            <span>Loading stocks...</span>
                         </div>
-                        <div class="stock-list" id="stockList"></div>
                     </div>
                 </div>
-            </aside>
+            </div>
+        </aside>
 
-            <!-- Main Content -->
-            <main class="main-content">
-                <div class="tabs">
-                    <div class="tabs-list">
-                        <button class="tab-trigger active" data-tab="overview">Overview</button>
-                        <button class="tab-trigger" data-tab="watchlist">Watchlist</button>
-                        <button class="tab-trigger" data-tab="news">News</button>
-                    </div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab-list">
+                    <button class="tab-button active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+                    <button class="tab-button" data-tab="watchlist" onclick="switchTab('watchlist')">Watchlist</button>
+                    <button class="tab-button" data-tab="news" onclick="switchTab('news')">News</button>
+                </div>
 
-                    <!-- Overview Tab -->
-                    <div class="tab-content active" id="overview">
-                        <div id="selectedStockContent" style="display: none;">
-                            <!-- Selected Stock Details -->
-                            <div class="card stock-details-card">
-                                <div class="card-header">
-                                    <div class="stock-header">
-                                        <div class="stock-title-section">
-                                            <h2 class="stock-symbol" id="stockSymbol">AAPL</h2>
-                                            <div class="stock-badge" id="stockName">Apple Inc.</div>
-                                            <div class="stock-live-badge" id="liveBadge">
-                                                <i data-lucide="refresh-cw" class="live-icon"></i>
-                                                <span>Demo</span>
-                                            </div>
-                                        </div>
-                                        <button class="btn btn-outline" id="watchlistBtn">
-                                            <i data-lucide="star" class="btn-icon" id="watchlistIcon"></i>
-                                            <span id="watchlistText">Add to Watchlist</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-content">
-                                    <div class="stock-details-grid">
-                                        <!-- Stock Information -->
-                                        <div class="stock-info">
-                                            <!-- Price Section -->
-                                            <div class="price-section">
-                                                <div class="price-label">
-                                                    <i data-lucide="dollar-sign" class="price-icon"></i>
-                                                    <span>Current Price</span>
-                                                </div>
-                                                <div class="current-price" id="currentPrice">$189.84</div>
-                                                <div class="price-change" id="priceChange">
-                                                    <i data-lucide="trending-up" class="change-icon"></i>
-                                                    <span>+$2.45 (+1.31%)</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Key Metrics -->
-                                            <div class="metrics-grid">
-                                                <div class="metric">
-                                                    <div class="metric-label">Open</div>
-                                                    <div class="metric-value" id="openPrice">$188.50</div>
-                                                </div>
-                                                <div class="metric">
-                                                    <div class="metric-label">High</div>
-                                                    <div class="metric-value high" id="highPrice">$192.15</div>
-                                                </div>
-                                                <div class="metric">
-                                                    <div class="metric-label">Low</div>
-                                                    <div class="metric-value low" id="lowPrice">$187.20</div>
-                                                </div>
-                                                <div class="metric">
-                                                    <div class="metric-label">Volume</div>
-                                                    <div class="metric-value" id="volume">52.4M</div>
-                                                </div>
-                                                <div class="metric">
-                                                    <div class="metric-label">Market Cap</div>
-                                                    <div class="metric-value" id="marketCap">2.89T</div>
-                                                </div>
-                                                <div class="metric">
-                                                    <div class="metric-label">P/E Ratio</div>
-                                                    <div class="metric-value" id="peRatio">28.5</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Chart -->
-                                        <div class="chart-section">
-                                            <div class="chart-header">
-                                                <h4 class="chart-title">Intraday Chart</h4>
-                                                <div class="chart-info">
-                                                    <span class="chart-data-type" id="chartDataType">Demo data</span>
-                                                    <div class="chart-fallback-badge" id="fallbackBadge" style="display: none;">
-                                                        Fallback Chart
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="chart-container">
-                                                <canvas id="stockChart"></canvas>
-                                                <div class="chart-loading" id="chartLoading">
-                                                    <div>Loading chart data...</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Popular Stocks -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">Popular Stocks</h3>
-                                </div>
-                                <div class="card-content">
-                                    <div class="popular-stocks-grid" id="popularStocks"></div>
-                                </div>
-                            </div>
+                <!-- Overview Tab -->
+                <div class="tab-content active" id="overview">
+                    <!-- Selected Stock Details -->
+                    <div class="card stock-details" id="stockDetailsCard">
+                        <div class="stock-details-loading">
+                            <div class="loading-spinner"></div>
+                            <span>Select a stock to view details</span>
                         </div>
                     </div>
 
-                    <!-- Watchlist Tab -->
-                    <div class="tab-content" id="watchlist">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">My Watchlist</h3>
-                            </div>
-                            <div class="card-content">
-                                <div id="watchlistContent">
-                                    <div class="empty-state">
-                                        <p>Your watchlist is empty. Add stocks by clicking the star icon.</p>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Company Information -->
+                    <div class="card" id="companyInfoCard" style="display: none;">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i data-lucide="building-2" class="card-icon"></i>
+                                Company Information
+                            </h3>
+                        </div>
+                        <div class="card-content" id="companyInfo">
+                            <!-- Company info will be populated by JavaScript -->
                         </div>
                     </div>
+                </div>
 
-                    <!-- News Tab -->
-                    <div class="tab-content" id="news">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    <i data-lucide="newspaper" class="card-icon"></i>
-                                    Market News
-                                </h3>
-                            </div>
-                            <div class="card-content">
-                                <div id="newsContent">
-                                    <div class="loading-text">Loading market news...</div>
+                <!-- Watchlist Tab -->
+                <div class="tab-content" id="watchlist">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">My Watchlist</h3>
+                            <button class="btn btn-outline btn-sm" onclick="clearWatchlist()">
+                                Clear All
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div class="watchlist-content" id="watchlistContent">
+                                <div class="watchlist-empty">
+                                    <i data-lucide="star" class="empty-icon"></i>
+                                    <p>Your watchlist is empty</p>
+                                    <small>Add stocks by clicking the star icon</small>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+
+                <!-- News Tab -->
+                <div class="tab-content" id="news">
+                    <div class="news-container">
+                        <!-- News Filter -->
+                        <div class="news-filter">
+                            <button class="filter-btn active" data-filter="all" onclick="filterNews('all')">All News</button>
+                            <button class="filter-btn" data-filter="international" onclick="filterNews('international')">International</button>
+                            <button class="filter-btn" data-filter="indian" onclick="filterNews('indian')">Indian Markets</button>
+                        </div>
+                        
+                        <!-- News Content -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="news-header">
+                                    <i data-lucide="newspaper" class="news-icon"></i>
+                                    <h3 class="card-title">Market News</h3>
+                                </div>
+                                <button class="btn btn-outline btn-sm" onclick="refreshNews()">
+                                    <i data-lucide="refresh-cw" class="btn-icon"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                            <div class="card-content">
+                                <div class="news-list" id="newsList">
+                                    <div class="news-loading">
+                                        <div class="loading-spinner"></div>
+                                        <span>Loading latest news...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script src="script.js"></script>
-    <script>
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-            initializeDashboard();
-        });
-
-        function goToHomepage() {
-            window.location.href = 'index.html';
-        }
-    </script>
 </body>
 </html>
