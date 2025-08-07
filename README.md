@@ -124,8 +124,4 @@
 ## ⚙️ Setup Instructions
 
 > This is a frontend-only project — no backend or database setup required.
-
-1. **Clone the repo**:
-   ```bash
-   git clone https://github.com/yourusername/stocktracker.git
-   cd stocktracker
+> Download the zip file, you are good to go.
