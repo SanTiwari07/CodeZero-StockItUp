@@ -1,783 +1,423 @@
-// StockTracker JavaScript - Complete functionality for stock tracking application
-// Includes Finnhub API integration with fallback to mock data
+// Stock Tracker Application
+// Complete vanilla JavaScript implementation with Finnhub API integration
 
-// ========================================
-// Configuration and Constants
-// ========================================
-
-const FINNHUB_CONFIG = {
-    API_KEY: 'd25p1l1r01qhge4dmi7gd25p1l1r01qhge4dmi80', // Replace with your actual Finnhub API key
-    BASE_URL: 'https://finnhub.io/api/v1',
-    WEBSOCKET_URL: 'wss://ws.finnhub.io'
+// API Configuration
+const API_CONFIG = {
+    FINNHUB_API_KEY: 'd25p1l1r01qhge4dmi7gd25p1l1r01qhge4dmi80',
+    FINNHUB_BASE_URL: 'https://finnhub.io/api/v1',
+    PROVIDER: 'finnhub' // 'finnhub' or 'mock'
 };
 
-// Mock data for demonstration and fallback
+// Application state
+const app = {
+    currentPage: window.location.pathname.includes('dashboard.html') ? 'dashboard' : 'homepage',
+    isDarkMode: false,
+    isAutoRefresh: true,
+    selectedStock: null,
+    stocks: [],
+    chartData: [],
+    marketIndices: [],
+    news: [],
+    watchlist: JSON.parse(localStorage.getItem('stockTracker_watchlist') || '["AAPL", "GOOGL", "MSFT"]'),
+    searchResults: [],
+    lastUpdated: null,
+    refreshInterval: null,
+    chartInstance: null
+};
+
+// Mock data for fallback
 const MOCK_STOCKS = [
     {
-        symbol: 'AAPL', name: 'Apple Inc.', price: 189.84, previousClose: 187.39,
-        high: 192.15, low: 187.20, open: 188.50, volume: 52400000,
-        marketCap: 2890000000000, peRatio: 28.5
+        symbol: 'AAPL', name: 'Apple Inc.', price: 189.84, change: 2.45, changePercent: 1.31,
+        volume: 52400000, high: 192.15, low: 187.20, open: 188.50, marketCap: 2890000000000,
+        description: 'Apple Inc. designs, manufactures, and markets consumer electronics, computer software, and online services worldwide.',
+        website: 'https://www.apple.com', industry: 'Technology Hardware', employees: 164000, country: 'United States', currency: 'USD'
     },
     {
-        symbol: 'GOOGL', name: 'Alphabet Inc.', price: 2847.32, previousClose: 2859.77,
-        high: 2865.50, low: 2835.75, open: 2859.80, volume: 28100000,
-        marketCap: 1750000000000, peRatio: 24.2
+        symbol: 'GOOGL', name: 'Alphabet Inc.', price: 2847.32, change: -12.45, changePercent: -0.43,
+        volume: 28100000, high: 2865.50, low: 2835.75, open: 2859.80, marketCap: 1750000000000,
+        description: 'Alphabet Inc. provides online advertising services worldwide through Google services.',
+        website: 'https://www.abc.xyz', industry: 'Internet Content & Information', employees: 174014, country: 'United States', currency: 'USD'
     },
     {
-        symbol: 'MSFT', name: 'Microsoft Corporation', price: 412.78, previousClose: 407.11,
-        high: 415.25, low: 408.90, open: 409.50, volume: 35200000,
-        marketCap: 3060000000000, peRatio: 35.8
+        symbol: 'MSFT', name: 'Microsoft Corporation', price: 412.78, change: 5.67, changePercent: 1.39,
+        volume: 35200000, high: 415.25, low: 408.90, open: 409.50, marketCap: 3060000000000,
+        description: 'Microsoft Corporation develops, licenses, and supports software, services, devices, and solutions worldwide.',
+        website: 'https://www.microsoft.com', industry: 'Software—Infrastructure', employees: 221000, country: 'United States', currency: 'USD'
     },
     {
-        symbol: 'TSLA', name: 'Tesla Inc.', price: 248.91, previousClose: 257.23,
-        high: 258.40, low: 246.75, open: 256.20, volume: 87300000,
-        marketCap: 792000000000, peRatio: 45.6
+        symbol: 'TSLA', name: 'Tesla Inc.', price: 248.91, change: -8.32, changePercent: -3.24,
+        volume: 87300000, high: 258.40, low: 246.75, open: 256.20, marketCap: 792000000000,
+        description: 'Tesla, Inc. designs, develops, manufactures, and sells electric vehicles worldwide.',
+        website: 'https://www.tesla.com', industry: 'Auto Manufacturers', employees: 140473, country: 'United States', currency: 'USD'
     },
     {
-        symbol: 'AMZN', name: 'Amazon.com Inc.', price: 178.25, previousClose: 175.04,
-        high: 180.50, low: 175.30, open: 176.80, volume: 42800000,
-        marketCap: 1850000000000, peRatio: 52.3
+        symbol: 'AMZN', name: 'Amazon.com Inc.', price: 178.25, change: 3.21, changePercent: 1.83,
+        volume: 42800000, high: 180.50, low: 175.30, open: 176.80, marketCap: 1850000000000,
+        description: 'Amazon.com, Inc. engages in the retail sale of consumer products and subscriptions worldwide.',
+        website: 'https://www.amazon.com', industry: 'Internet Retail', employees: 1541000, country: 'United States', currency: 'USD'
     },
     {
-        symbol: 'NVDA', name: 'NVIDIA Corporation', price: 891.38, previousClose: 875.96,
-        high: 895.75, low: 875.20, open: 880.50, volume: 71200000,
-        marketCap: 2200000000000, peRatio: 65.4
+        symbol: 'NVDA', name: 'NVIDIA Corporation', price: 891.38, change: 15.42, changePercent: 1.76,
+        volume: 71200000, high: 895.75, low: 875.20, open: 880.50, marketCap: 2200000000000,
+        description: 'NVIDIA Corporation operates as a computing company worldwide.',
+        website: 'https://www.nvidia.com', industry: 'Semiconductors', employees: 29600, country: 'United States', currency: 'USD'
+    },
+    {
+        symbol: 'META', name: 'Meta Platforms Inc.', price: 563.27, change: 8.91, changePercent: 1.61,
+        volume: 15400000, high: 568.45, low: 552.30, open: 555.80, marketCap: 1435000000000,
+        description: 'Meta Platforms, Inc. develops products that enable people to connect and share worldwide.',
+        website: 'https://www.meta.com', industry: 'Internet Content & Information', employees: 77805, country: 'United States', currency: 'USD'
+    },
+    {
+        symbol: 'NFLX', name: 'Netflix Inc.', price: 712.45, change: -5.23, changePercent: -0.73,
+        volume: 2800000, high: 718.90, low: 708.15, open: 715.60, marketCap: 306000000000,
+        description: 'Netflix, Inc. provides entertainment services worldwide.',
+        website: 'https://www.netflix.com', industry: 'Entertainment', employees: 12800, country: 'United States', currency: 'USD'
     }
 ];
 
-const MOCK_MARKET_INDICES = [
-    { symbol: '^GSPC', name: 'S&P 500', price: 5617.20, change: 47.85, changePercent: 0.86 },
-    { symbol: '^DJI', name: 'Dow Jones', price: 40842.79, change: 129.44, changePercent: 0.32 },
-    { symbol: '^IXIC', name: 'NASDAQ', price: 17876.77, change: 218.16, changePercent: 1.24 }
+const MOCK_INDICES = [
+    { name: 'S&P 500', symbol: '^GSPC', value: 5617.20, change: 47.76, changePercent: 0.85 },
+    { name: 'Dow Jones', symbol: '^DJI', value: 40842.79, change: 130.49, changePercent: 0.32 },
+    { name: 'NASDAQ', symbol: '^IXIC', value: 17876.77, change: 221.51, changePercent: 1.24 },
+    { name: 'NIFTY 50', symbol: '^NSEI', value: 24122.65, change: -36.18, changePercent: -0.15 },
+    { name: 'BSE SENSEX', symbol: '^BSESN', value: 79223.11, change: -182.29, changePercent: -0.23 }
 ];
 
 const MOCK_NEWS = [
-    {
-        headline: 'Federal Reserve Signals Potential Rate Adjustments in Upcoming Meeting',
-        summary: 'Federal Reserve officials hint at possible monetary policy changes as inflation data shows mixed signals across different sectors.',
-        url: '#', datetime: Date.now() / 1000 - 7200, source: 'Reuters',
-        image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=200&fit=crop'
-    },
-    {
-        headline: 'Tech Giants Report Strong Q4 Earnings Despite Market Volatility',
-        summary: 'Major technology companies exceed analyst expectations with robust revenue growth driven by AI and cloud computing initiatives.',
-        url: '#', datetime: Date.now() / 1000 - 14400, source: 'Bloomberg',
-        image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=200&fit=crop'
-    },
-    {
-        headline: 'Energy Sector Surges on Supply Chain Concerns and Geopolitical Tensions',
-        summary: 'Oil and gas stocks climb as global supply chain disruptions raise concerns about energy security and pricing.',
-        url: '#', datetime: Date.now() / 1000 - 21600, source: 'CNBC',
-        image: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&h=200&fit=crop'
-    },
-    {
-        headline: 'Cryptocurrency Markets Show Renewed Institutional Interest',
-        summary: 'Digital assets gain momentum as institutional investors increase allocation amid regulatory clarity improvements.',
-        url: '#', datetime: Date.now() / 1000 - 28800, source: 'MarketWatch',
-        image: 'https://images.unsplash.com/photo-1640826843936-834f3dfff419?w=400&h=200&fit=crop'
-    }
+    { title: 'Federal Reserve Signals Potential Rate Adjustments in 2025', source: 'Reuters', category: 'international', time: '2 hours ago' },
+    { title: 'Indian Stock Markets Show Resilience Amid Global Volatility', source: 'Economic Times', category: 'indian', time: '3 hours ago' },
+    { title: 'Technology Sector Leads Market Rally Across Global Exchanges', source: 'Bloomberg', category: 'international', time: '4 hours ago' },
+    { title: 'RBI Maintains Accommodative Stance on Interest Rates', source: 'Business Standard', category: 'indian', time: '5 hours ago' },
+    { title: 'Reliance Industries Reports Strong Q4 Results', source: 'Moneycontrol', category: 'indian', time: '6 hours ago' },
+    { title: 'Global Supply Chain Disruptions Impact Manufacturing', source: 'Financial Times', category: 'international', time: '7 hours ago' }
 ];
 
-// ========================================
-// Global State
-// ========================================
+// Utility Functions
+function formatNumber(num, decimals = 2) {
+    if (typeof num !== 'number' || isNaN(num)) return 'N/A';
+    return num.toFixed(decimals);
+}
 
-let globalState = {
-    stocks: [],
-    selectedStock: null,
-    watchlist: ['AAPL', 'GOOGL', 'MSFT'],
-    marketIndices: [],
-    newsItems: [],
-    chartData: [],
-    isAutoRefresh: true,
-    lastUpdated: null,
-    chartInstance: null,
-    refreshInterval: null,
-    apiStatus: {
-        isConnected: false,
-        usingMockData: true,
-        message: 'Using demo data - Set up Finnhub API key for live data',
-        needsSetup: true
-    }
-};
+function formatVolume(volume) {
+    if (typeof volume !== 'number' || isNaN(volume)) return 'N/A';
+    if (volume >= 1e9) return `${(volume / 1e9).toFixed(1)}B`;
+    if (volume >= 1e6) return `${(volume / 1e6).toFixed(1)}M`;
+    if (volume >= 1e3) return `${(volume / 1e3).toFixed(1)}K`;
+    return volume.toString();
+}
 
-// ========================================
-// Stock API Service
-// ========================================
+function formatMarketCap(marketCap) {
+    if (typeof marketCap !== 'number' || isNaN(marketCap)) return 'N/A';
+    if (marketCap >= 1e12) return `$${(marketCap / 1e12).toFixed(2)}T`;
+    if (marketCap >= 1e9) return `$${(marketCap / 1e9).toFixed(2)}B`;
+    if (marketCap >= 1e6) return `$${(marketCap / 1e6).toFixed(2)}M`;
+    return `$${marketCap.toString()}`;
+}
 
-class StockAPIService {
-    constructor() {
-        this.cache = new Map();
-        this.CACHE_DURATION = 30000; // 30 seconds
-    }
+function formatCurrency(amount) {
+    if (typeof amount !== 'number') return '$0.00';
+    return `$${amount.toFixed(2)}`;
+}
 
-    isCacheValid(key) {
-        const cached = this.cache.get(key);
-        if (!cached) return false;
-        return Date.now() - cached.timestamp < this.CACHE_DURATION;
-    }
+function isPositive(value) {
+    return typeof value === 'number' && value >= 0;
+}
 
-    setCache(key, data) {
-        this.cache.set(key, { data, timestamp: Date.now() });
-    }
-
-    isValidApiKey() {
-        return FINNHUB_CONFIG.API_KEY !== 'YOUR_FINNHUB_API_KEY' && FINNHUB_CONFIG.API_KEY.length > 10;
-    }
-
-    async fetchFromFinnhub(endpoint, params = {}) {
-        if (!this.isValidApiKey()) {
-            throw new Error('API key not configured');
-        }
-
-        const url = new URL(`${FINNHUB_CONFIG.BASE_URL}${endpoint}`);
-        url.searchParams.append('token', FINNHUB_CONFIG.API_KEY);
+// API Functions
+async function fetchFromFinnhub(endpoint, params = {}) {
+    try {
+        const url = new URL(`${API_CONFIG.FINNHUB_BASE_URL}${endpoint}`);
+        url.searchParams.append('token', API_CONFIG.FINNHUB_API_KEY);
         
         Object.entries(params).forEach(([key, value]) => {
             url.searchParams.append(key, value);
         });
-
+        
         const response = await fetch(url.toString());
         
         if (!response.ok) {
-            if (response.status === 401) {
-                globalState.apiStatus = {
-                    isConnected: false,
-                    usingMockData: true,
-                    message: 'Invalid API key - Using demo data',
-                    needsSetup: true
-                };
-                throw new Error('Invalid API key');
-            }
-            throw new Error(`Finnhub API error: ${response.status}`);
+            throw new Error(`HTTP ${response.status}`);
         }
         
-        const data = await response.json();
-        
-        // Update API status on successful call
-        globalState.apiStatus = {
-            isConnected: true,
-            usingMockData: false,
-            message: 'Connected to live market data',
-            needsSetup: false
-        };
-        
-        return data;
+        return await response.json();
+    } catch (error) {
+        console.warn('Finnhub API error:', error);
+        throw error;
     }
+}
 
-    generateMockStockData(baseStock) {
-        const volatility = (Math.random() - 0.5) * 0.04; // ±2% volatility
-        const currentPrice = baseStock.price * (1 + volatility);
-        const change = currentPrice - baseStock.previousClose;
-        const changePercent = (change / baseStock.previousClose) * 100;
-
-        const high = Math.max(currentPrice, baseStock.high * (1 + Math.random() * 0.01));
-        const low = Math.min(currentPrice, baseStock.low * (1 - Math.random() * 0.01));
-
+async function fetchStockQuote(symbol) {
+    if (API_CONFIG.PROVIDER === 'mock') {
+        return getMockStockData(symbol);
+    }
+    
+    try {
+        const [quote, profile] = await Promise.all([
+            fetchFromFinnhub('/quote', { symbol }),
+            fetchFromFinnhub('/stock/profile2', { symbol }).catch(() => ({}))
+        ]);
+        
+        if (!quote.c || quote.c === 0) {
+            return getMockStockData(symbol);
+        }
+        
         return {
-            symbol: baseStock.symbol,
-            name: baseStock.name,
-            price: Math.round(currentPrice * 100) / 100,
-            change: Math.round(change * 100) / 100,
-            changePercent: Math.round(changePercent * 100) / 100,
-            volume: this.formatVolume(baseStock.volume * (0.8 + Math.random() * 0.4)),
-            high: Math.round(high * 100) / 100,
-            low: Math.round(low * 100) / 100,
-            open: Math.round(baseStock.open * (1 + (Math.random() - 0.5) * 0.02) * 100) / 100,
-            previousClose: baseStock.previousClose,
-            marketCap: this.formatMarketCap(baseStock.marketCap),
-            peRatio: baseStock.peRatio,
-            lastUpdated: new Date().toISOString()
+            symbol: symbol,
+            name: profile.name || symbol,
+            price: quote.c,
+            change: quote.d || 0,
+            changePercent: quote.dp || 0,
+            volume: quote.v || 0,
+            high: quote.h || quote.c,
+            low: quote.l || quote.c,
+            open: quote.o || quote.c,
+            marketCap: profile.marketCapitalization ? profile.marketCapitalization * 1000000 : 0,
+            description: profile.description || '',
+            website: profile.weburl || '',
+            industry: profile.finnhubIndustry || '',
+            employees: profile.employeeTotal || 0,
+            country: profile.country || '',
+            currency: profile.currency || 'USD'
         };
+    } catch (error) {
+        console.warn(`Falling back to mock data for ${symbol}:`, error);
+        return getMockStockData(symbol);
     }
+}
 
-    generateMockIntradayData(symbol) {
-        const baseStock = MOCK_STOCKS.find(s => s.symbol === symbol);
-        if (!baseStock) return [];
-
-        const now = new Date();
-        const data = [];
-        let currentPrice = baseStock.previousClose;
-
-        // Generate 78 data points (6.5 hours of 5-minute intervals)
-        for (let i = 78; i >= 0; i--) {
-            const timestamp = new Date(now.getTime() - (i * 5 * 60 * 1000));
-            
-            const volatility = (Math.random() - 0.5) * 0.005; // ±0.5% per 5-minute interval
-            const trend = (78 - i) / 78 * (baseStock.price - baseStock.previousClose) / baseStock.previousClose;
-            
-            currentPrice = currentPrice * (1 + volatility + trend * 0.1);
-            
-            data.push({
-                time: timestamp.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: false 
-                }),
-                price: Math.round(currentPrice * 100) / 100,
-                timestamp: timestamp.getTime()
-            });
-        }
-
-        return data;
+async function fetchMarketIndices() {
+    if (API_CONFIG.PROVIDER === 'mock') {
+        return getMockIndices();
     }
+    
+    try {
+        const usIndices = [
+            { name: 'S&P 500', symbol: '^GSPC' },
+            { name: 'Dow Jones', symbol: '^DJI' },
+            { name: 'NASDAQ', symbol: '^IXIC' }
+        ];
 
-    async fetchStockQuote(symbol) {
-        const cacheKey = `quote_${symbol}`;
-        
-        if (this.isCacheValid(cacheKey)) {
-            return this.cache.get(cacheKey).data;
-        }
-
-        try {
-            // Try real API first
-            const quote = await this.fetchFromFinnhub('/quote', { symbol });
-            const profile = await this.fetchFromFinnhub('/stock/profile2', { symbol });
-            const metrics = await this.fetchFromFinnhub('/stock/metric', { 
-                symbol, 
-                metric: 'all' 
-            });
-
-            if (!quote || quote.c === 0) return null;
-
-            const result = {
-                symbol: symbol.toUpperCase(),
-                name: profile.name || symbol,
-                price: quote.c || 0,
-                change: quote.d || 0,
-                changePercent: quote.dp || 0,
-                volume: this.formatVolume(quote.v || 0),
-                high: quote.h || 0,
-                low: quote.l || 0,
-                open: quote.o || 0,
-                previousClose: quote.pc || 0,
-                marketCap: this.formatMarketCap(profile.marketCapitalization || 0),
-                peRatio: metrics?.metric?.peBasicExclExtraTTM || 0,
-                lastUpdated: new Date().toISOString()
-            };
-
-            this.setCache(cacheKey, result);
-            return result;
-        } catch (error) {
-            // Fallback to mock data
-            const mockStock = MOCK_STOCKS.find(s => s.symbol === symbol.toUpperCase());
-            if (mockStock) {
-                const result = this.generateMockStockData(mockStock);
-                this.setCache(cacheKey, result);
-                return result;
-            }
-            
-            console.error(`Error fetching quote for ${symbol}:`, error);
-            return null;
-        }
-    }
-
-    async fetchIntradayData(symbol) {
-        const cacheKey = `intraday_${symbol}`;
-        
-        if (this.isCacheValid(cacheKey)) {
-            return this.cache.get(cacheKey).data;
-        }
-
-        try {
-            const now = new Date();
-            const from = Math.floor((now.getTime() - 24 * 60 * 60 * 1000) / 1000);
-            const to = Math.floor(now.getTime() / 1000);
-
-            const candles = await this.fetchFromFinnhub('/stock/candle', {
-                symbol,
-                resolution: '5',
-                from: from.toString(),
-                to: to.toString()
-            });
-
-            if (!candles.c || candles.s === 'no_data') {
-                throw new Error('No data available');
-            }
-
-            const chartData = [];
-            const dataLength = Math.min(candles.c.length, 78);
-            const startIndex = Math.max(0, candles.c.length - dataLength);
-
-            for (let i = startIndex; i < candles.c.length; i++) {
-                const timestamp = candles.t[i] * 1000;
-                const date = new Date(timestamp);
-                
-                chartData.push({
-                    time: date.toLocaleTimeString('en-US', { 
-                        hour: '2-digit', 
-                        minute: '2-digit',
-                        hour12: false 
-                    }),
-                    price: parseFloat(candles.c[i].toFixed(2)),
-                    timestamp
-                });
-            }
-
-            this.setCache(cacheKey, chartData);
-            return chartData;
-        } catch (error) {
-            // Fallback to mock data
-            const mockData = this.generateMockIntradayData(symbol);
-            this.setCache(cacheKey, mockData);
-            return mockData;
-        }
-    }
-
-    async searchStocks(query) {
-        if (query.length < 1) return [];
-        
-        const cacheKey = `search_${query}`;
-        
-        if (this.isCacheValid(cacheKey)) {
-            return this.cache.get(cacheKey).data;
-        }
-
-        try {
-            const searchResults = await this.fetchFromFinnhub('/search', { q: query });
-            
-            if (!searchResults.result) return [];
-
-            const results = searchResults.result
-                .slice(0, 10)
-                .map(item => ({
-                    symbol: item.symbol,
-                    name: item.description,
-                    type: item.type,
-                    region: 'US'
-                }));
-
-            this.setCache(cacheKey, results);
-            return results;
-        } catch (error) {
-            // Fallback to mock search
-            const lowerQuery = query.toLowerCase();
-            const results = MOCK_STOCKS
-                .filter(stock => 
-                    stock.symbol.toLowerCase().includes(lowerQuery) ||
-                    stock.name.toLowerCase().includes(lowerQuery)
-                )
-                .slice(0, 10)
-                .map(stock => ({
-                    symbol: stock.symbol,
-                    name: stock.name,
-                    type: 'Common Stock',
-                    region: 'United States'
-                }));
-
-            this.setCache(cacheKey, results);
-            return results;
-        }
-    }
-
-    async fetchMarketIndices() {
-        const cacheKey = 'market_indices';
-        
-        if (this.isCacheValid(cacheKey)) {
-            return this.cache.get(cacheKey).data;
-        }
-
-        try {
-            const indices = [
-                { symbol: '^GSPC', name: 'S&P 500' },
-                { symbol: '^DJI', name: 'Dow Jones' },
-                { symbol: '^IXIC', name: 'NASDAQ' }
-            ];
-
-            const promises = indices.map(async (index) => {
+        const indices = await Promise.all([
+            ...usIndices.map(async (index) => {
                 try {
-                    const quote = await this.fetchFromFinnhub('/quote', { symbol: index.symbol });
-                    
+                    const quote = await fetchFromFinnhub('/quote', { symbol: index.symbol });
                     return {
                         name: index.name,
-                        value: this.formatPrice(quote.c || 0),
-                        change: quote.d >= 0 ? `+${quote.d.toFixed(2)}` : quote.d.toFixed(2),
-                        changePercent: quote.dp >= 0 ? `+${quote.dp.toFixed(2)}%` : `${quote.dp.toFixed(2)}%`,
-                        isPositive: quote.d >= 0
+                        symbol: index.symbol,
+                        value: quote.c || 0,
+                        change: quote.d || 0,
+                        changePercent: quote.dp || 0
                     };
                 } catch (error) {
-                    // Return mock data for this specific index
-                    const mockIndex = MOCK_MARKET_INDICES.find(m => m.name === index.name);
-                    if (mockIndex) {
-                        const volatility = (Math.random() - 0.5) * 0.02;
-                        const newPrice = mockIndex.price * (1 + volatility);
-                        const change = newPrice - mockIndex.price;
-                        const changePercent = (change / mockIndex.price) * 100;
-                        
-                        return {
-                            name: index.name,
-                            value: this.formatPrice(newPrice),
-                            change: change >= 0 ? `+${change.toFixed(2)}` : change.toFixed(2),
-                            changePercent: changePercent >= 0 ? `+${changePercent.toFixed(2)}%` : `${changePercent.toFixed(2)}%`,
-                            isPositive: change >= 0
-                        };
-                    }
-                    
-                    return {
-                        name: index.name,
-                        value: 'N/A',
-                        change: 'N/A',
-                        changePercent: 'N/A',
-                        isPositive: true
-                    };
+                    const mockIndex = MOCK_INDICES.find(m => m.name === index.name);
+                    return mockIndex || { name: index.name, symbol: index.symbol, value: 0, change: 0, changePercent: 0 };
                 }
-            });
-
-            const results = await Promise.all(promises);
-            this.setCache(cacheKey, results);
-            return results;
-        } catch (error) {
-            // Fallback to mock indices data
-            const results = MOCK_MARKET_INDICES.map(mockIndex => {
-                const volatility = (Math.random() - 0.5) * 0.02;
-                const newPrice = mockIndex.price * (1 + volatility);
-                const change = newPrice - mockIndex.price;
-                const changePercent = (change / mockIndex.price) * 100;
-                
-                return {
-                    name: mockIndex.name,
-                    value: this.formatPrice(newPrice),
-                    change: change >= 0 ? `+${change.toFixed(2)}` : change.toFixed(2),
-                    changePercent: changePercent >= 0 ? `+${changePercent.toFixed(2)}%` : `${changePercent.toFixed(2)}%`,
-                    isPositive: change >= 0
-                };
-            });
-
-            this.setCache(cacheKey, results);
-            return results;
-        }
-    }
-
-    async fetchMarketNews() {
-        const cacheKey = 'market_news';
+            }),
+            // Add Indian indices from mock data
+            ...MOCK_INDICES.slice(3)
+        ]);
         
-        if (this.isCacheValid(cacheKey)) {
-            return this.cache.get(cacheKey).data;
-        }
+        return indices;
+    } catch (error) {
+        console.warn('Falling back to mock market indices:', error);
+        return getMockIndices();
+    }
+}
 
-        try {
-            const news = await this.fetchFromFinnhub('/news', { 
-                category: 'general',
-                minId: '0'
-            });
-
-            if (!news || !Array.isArray(news)) throw new Error('No news data');
-
-            const results = news
-                .slice(0, 10)
-                .map(item => ({
-                    title: item.headline,
-                    summary: item.summary,
-                    url: item.url,
-                    time: this.formatNewsTime(item.datetime),
-                    source: item.source,
-                    image: item.image
-                }));
-
-            this.setCache(cacheKey, results);
-            return results;
-        } catch (error) {
-            // Fallback to mock news
-            const results = MOCK_NEWS.map(item => ({
-                title: item.headline,
-                summary: item.summary,
-                url: item.url,
-                time: this.formatNewsTime(item.datetime),
-                source: item.source,
-                image: item.image
+async function searchStocks(query) {
+    if (query.length < 1) return [];
+    
+    if (API_CONFIG.PROVIDER === 'mock') {
+        return getMockSearchResults(query);
+    }
+    
+    try {
+        const results = await fetchFromFinnhub('/search', { q: query });
+        
+        return (results.result || [])
+            .slice(0, 10)
+            .map(item => ({
+                symbol: item.symbol,
+                name: item.description || item.symbol,
+                type: item.type || 'Common Stock',
+                region: 'US'
             }));
+    } catch (error) {
+        console.warn(`Falling back to mock search for ${query}:`, error);
+        return getMockSearchResults(query);
+    }
+}
 
-            this.setCache(cacheKey, results);
-            return results;
+async function fetchNews(category = 'all') {
+    if (API_CONFIG.PROVIDER === 'mock') {
+        return getMockNews(category);
+    }
+    
+    try {
+        const [generalNews] = await Promise.all([
+            fetchFromFinnhub('/news', { category: 'general' }).catch(() => [])
+        ]);
+        
+        const formattedGeneralNews = (generalNews || [])
+            .slice(0, 10)
+            .map(item => ({
+                title: item.headline || 'No title',
+                summary: item.summary || '',
+                source: item.source || 'Unknown',
+                category: 'international',
+                time: timeAgo(new Date(item.datetime * 1000))
+            }));
+        
+        const indianNews = MOCK_NEWS.filter(item => item.category === 'indian');
+        const allNews = [...formattedGeneralNews, ...indianNews];
+        
+        if (category === 'indian') {
+            return allNews.filter(item => item.category === 'indian');
+        } else if (category === 'international') {
+            return allNews.filter(item => item.category === 'international');
         }
-    }
-
-    async fetchMultipleQuotes(symbols) {
-        const promises = symbols.map(symbol => this.fetchStockQuote(symbol));
-        const results = await Promise.all(promises);
-        return results.filter(result => result !== null);
-    }
-
-    getPopularStocks() {
-        return ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'CRM'];
-    }
-
-    isMarketOpen() {
-        const now = new Date();
-        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const easternTime = new Date(utc + (-5 * 3600000));
         
-        const day = easternTime.getDay();
-        const hour = easternTime.getHours();
-        const minute = easternTime.getMinutes();
-        
-        if (day === 0 || day === 6) return false;
-        
-        const marketOpen = 9 * 60 + 30;
-        const marketClose = 16 * 60;
-        const currentTime = hour * 60 + minute;
-        
-        return currentTime >= marketOpen && currentTime < marketClose;
+        return allNews;
+    } catch (error) {
+        console.warn('Falling back to mock news:', error);
+        return getMockNews(category);
     }
+}
 
-    getMarketStatus() {
-        const isOpen = this.isMarketOpen();
+// Mock data functions
+function getMockStockData(symbol) {
+    const stock = MOCK_STOCKS.find(s => s.symbol === symbol);
+    if (!stock) return null;
+    
+    // Simulate small price changes
+    const volatility = (Math.random() - 0.5) * 0.02;
+    const newPrice = stock.price * (1 + volatility);
+    const change = newPrice - stock.price;
+    const changePercent = (change / stock.price) * 100;
+    
+    return {
+        ...stock,
+        price: Math.round(newPrice * 100) / 100,
+        change: Math.round(change * 100) / 100,
+        changePercent: Math.round(changePercent * 100) / 100
+    };
+}
+
+function getMockIndices() {
+    return MOCK_INDICES.map(index => ({
+        ...index,
+        value: Math.round((index.value * (1 + (Math.random() - 0.5) * 0.005)) * 100) / 100,
+        change: Math.round((index.change * (1 + (Math.random() - 0.5) * 0.2)) * 100) / 100,
+        changePercent: Math.round((index.changePercent * (1 + (Math.random() - 0.5) * 0.2)) * 100) / 100
+    }));
+}
+
+function getMockSearchResults(query) {
+    const lowerQuery = query.toLowerCase();
+    return MOCK_STOCKS
+        .filter(stock => 
+            stock.symbol.toLowerCase().includes(lowerQuery) ||
+            stock.name.toLowerCase().includes(lowerQuery)
+        )
+        .slice(0, 10)
+        .map(stock => ({
+            symbol: stock.symbol,
+            name: stock.name,
+            type: 'Common Stock',
+            region: stock.country || 'United States'
+        }));
+}
+
+function getMockNews(category) {
+    if (category === 'indian') {
+        return MOCK_NEWS.filter(item => item.category === 'indian');
+    } else if (category === 'international') {
+        return MOCK_NEWS.filter(item => item.category === 'international');
+    }
+    return MOCK_NEWS;
+}
+
+function generateMockChartData(symbol) {
+    const now = new Date();
+    const data = [];
+    const basePrice = app.selectedStock?.price || 100;
+    
+    for (let i = 29; i >= 0; i--) {
+        const timestamp = new Date(now.getTime() - (i * 10 * 60 * 1000));
+        const volatility = Math.random() * 0.02 - 0.01;
+        const price = basePrice * (1 + volatility * (30 - i) / 30);
         
-        if (isOpen) {
-            return { isOpen: true, message: 'Market is Open' };
-        } else {
-            const now = new Date();
-            const day = now.getDay();
-            
-            if (day === 0 || day === 6) {
-                return { isOpen: false, message: 'Market Closed - Weekend' };
-            } else {
-                return { isOpen: false, message: 'Market Closed' };
-            }
-        }
-    }
-
-    // Utility functions
-    formatVolume(volume) {
-        if (volume >= 1e9) return `${(volume / 1e9).toFixed(1)}B`;
-        if (volume >= 1e6) return `${(volume / 1e6).toFixed(1)}M`;
-        if (volume >= 1e3) return `${(volume / 1e3).toFixed(1)}K`;
-        return volume.toString();
-    }
-
-    formatMarketCap(marketCap) {
-        if (marketCap >= 1e12) return `${(marketCap / 1e12).toFixed(2)}T`;
-        if (marketCap >= 1e9) return `${(marketCap / 1e9).toFixed(2)}B`;
-        if (marketCap >= 1e6) return `${(marketCap / 1e6).toFixed(2)}M`;
-        return marketCap.toString();
-    }
-
-    formatPrice(price) {
-        return price.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+        data.push({
+            time: timestamp.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            }),
+            price: Math.round(price * 100) / 100
         });
     }
-
-    formatNewsTime(datetime) {
-        const date = new Date(datetime * 1000);
-        const now = new Date();
-        const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-        
-        if (diffInHours < 1) {
-            const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-            return `${diffInMinutes} minutes ago`;
-        } else if (diffInHours < 24) {
-            return `${diffInHours} hours ago`;
-        } else {
-            const diffInDays = Math.floor(diffInHours / 24);
-            return `${diffInDays} days ago`;
-        }
-    }
-}
-
-// Initialize API service
-const stockAPI = new StockAPIService();
-
-// ========================================
-// Homepage Functions
-// ========================================
-
-function initializeHomepage() {
-    loadMarketPreview();
-}
-
-async function loadMarketPreview() {
-    const container = document.getElementById('marketPreview');
-    if (!container) return;
-
-    try {
-        const popularSymbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA'];
-        const stockData = await stockAPI.fetchMultipleQuotes(popularSymbols);
-        
-        container.innerHTML = stockData.map(stock => `
-            <div class="market-preview-card">
-                <div class="market-preview-header">
-                    <h3 class="market-preview-symbol">${stock.symbol}</h3>
-                    <div class="market-preview-trend ${stock.change >= 0 ? 'positive' : 'negative'}">
-                        <i data-lucide="trending-${stock.change >= 0 ? 'up' : 'down'}" class="trend-icon"></i>
-                    </div>
-                </div>
-                <div class="market-preview-price">$${stock.price.toFixed(2)}</div>
-                <div class="market-preview-change ${stock.change >= 0 ? 'positive' : 'negative'}">
-                    ${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%
-                </div>
-            </div>
-        `).join('');
-        
-        lucide.createIcons();
-    } catch (error) {
-        console.error('Failed to load market preview:', error);
-        container.innerHTML = '<div class="loading-text">Unable to load market data</div>';
-    }
-}
-
-// ========================================
-// Dashboard Functions
-// ========================================
-
-function initializeDashboard() {
-    setupEventListeners();
-    loadInitialData();
-    loadMarketData();
-}
-
-function setupEventListeners() {
-    // Auto-refresh toggle
-    const autoRefreshBtn = document.getElementById('autoRefreshBtn');
-    if (autoRefreshBtn) {
-        autoRefreshBtn.addEventListener('click', toggleAutoRefresh);
-    }
-
-    // Search functionality
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
-        searchInput.addEventListener('focus', () => {
-            const results = document.getElementById('searchResults');
-            if (results && results.children.length > 0) {
-                results.style.display = 'block';
-            }
-        });
-        searchInput.addEventListener('blur', () => {
-            setTimeout(() => {
-                const results = document.getElementById('searchResults');
-                if (results) results.style.display = 'none';
-            }, 200);
-        });
-    }
-
-    // Tab switching
-    document.querySelectorAll('.tab-trigger').forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-    });
-
-    // Watchlist button
-    const watchlistBtn = document.getElementById('watchlistBtn');
-    if (watchlistBtn) {
-        watchlistBtn.addEventListener('click', toggleWatchlist);
-    }
-}
-
-async function loadInitialData() {
-    const loadingElement = document.getElementById('stocksLoading');
-    if (loadingElement) loadingElement.style.display = 'flex';
-
-    try {
-        const popularSymbols = stockAPI.getPopularStocks().slice(0, 6);
-        const stockData = await stockAPI.fetchMultipleQuotes(popularSymbols);
-        globalState.stocks = stockData;
-        
-        if (stockData.length > 0) {
-            globalState.selectedStock = stockData[0];
-            const intradayData = await stockAPI.fetchIntradayData(stockData[0].symbol);
-            globalState.chartData = intradayData;
-        }
-        
-        // Get market status
-        const status = stockAPI.getMarketStatus();
-        updateMarketStatus(status);
-        
-        // Update API status
-        updateAPIStatus();
-        
-        globalState.lastUpdated = new Date();
-        updateLastUpdatedTime();
-        
-        renderStockList();
-        renderSelectedStock();
-        updateChart();
-    } catch (error) {
-        console.error('Failed to load initial data:', error);
-    } finally {
-        if (loadingElement) loadingElement.style.display = 'none';
-    }
-}
-
-async function loadMarketData() {
-    try {
-        // Load market indices
-        const indices = await stockAPI.fetchMarketIndices();
-        globalState.marketIndices = indices;
-        renderMarketIndices();
-
-        // Load market news
-        const news = await stockAPI.fetchMarketNews();
-        globalState.newsItems = news;
-        renderNews();
-        
-        // Update API status after successful calls
-        updateAPIStatus();
-    } catch (error) {
-        console.error('Failed to load market data:', error);
-    }
-}
-
-function updateMarketStatus(status) {
-    const statusElement = document.getElementById('marketStatus');
-    if (!statusElement) return;
-
-    const dot = statusElement.querySelector('.status-dot');
-    const text = statusElement.querySelector('span');
     
-    if (dot && text) {
-        dot.className = `status-dot ${status.isOpen ? 'open' : 'closed'}`;
-        text.textContent = status.message;
+    return data;
+}
+
+function timeAgo(date) {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    return `${Math.floor(diffInSeconds / 86400)} days ago`;
+}
+
+// Navigation Functions
+function goToDashboard() {
+    window.location.href = 'dashboard.html';
+}
+
+function goToHomepage() {
+    window.location.href = 'index.html';
+}
+
+function scrollToFeatures() {
+    const featuresSection = document.getElementById('features');
+    if (featuresSection) {
+        featuresSection.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
-function updateAPIStatus() {
-    const statusElement = document.getElementById('apiStatus');
-    const alertElement = document.getElementById('apiAlert');
+// Dark Mode Functions
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('stockTracker_theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    if (statusElement) {
-        const icon = statusElement.querySelector('.status-icon');
-        const text = statusElement.querySelector('span');
-        
-        if (icon && text) {
-            icon.setAttribute('data-lucide', globalState.apiStatus.usingMockData ? 'alert-circle' : 'check-circle');
-            text.textContent = globalState.apiStatus.usingMockData ? 'Demo Data' : 'Live Data';
-            statusElement.className = `status-badge ${globalState.apiStatus.isConnected ? 'connected' : 'demo'}`;
-        }
-    }
-    
-    if (alertElement) {
-        alertElement.style.display = globalState.apiStatus.needsSetup ? 'block' : 'none';
-    }
-    
-    lucide.createIcons();
+    app.isDarkMode = savedTheme ? savedTheme === 'dark' : prefersDark;
+    applyTheme();
 }
 
-function updateLastUpdatedTime() {
-    const timeElement = document.getElementById('updateTime');
-    const containerElement = document.getElementById('lastUpdated');
-    
-    if (timeElement && containerElement && globalState.lastUpdated) {
-        timeElement.textContent = globalState.lastUpdated.toLocaleTimeString();
-        containerElement.style.display = 'flex';
-    }
+function toggleTheme() {
+    app.isDarkMode = !app.isDarkMode;
+    applyTheme();
+    localStorage.setItem('stockTracker_theme', app.isDarkMode ? 'dark' : 'light');
 }
 
+function applyTheme() {
+    if (app.isDarkMode) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    updateChart();
+}
+
+// Auto-refresh Functions
 function toggleAutoRefresh() {
-    globalState.isAutoRefresh = !globalState.isAutoRefresh;
+    app.isAutoRefresh = !app.isAutoRefresh;
+    updateAutoRefreshUI();
     
-    const btn = document.getElementById('autoRefreshBtn');
-    const icon = document.getElementById('refreshIcon');
-    
-    if (btn) {
-        btn.className = `btn btn-sm ${globalState.isAutoRefresh ? 'btn-primary' : 'btn-outline'}`;
-    }
-    
-    if (icon) {
-        icon.className = `btn-icon ${globalState.isAutoRefresh ? 'spinning' : ''}`;
-    }
-    
-    if (globalState.isAutoRefresh) {
+    if (app.isAutoRefresh) {
         startAutoRefresh();
     } else {
         stopAutoRefresh();
@@ -785,513 +425,304 @@ function toggleAutoRefresh() {
 }
 
 function startAutoRefresh() {
-    if (globalState.refreshInterval) return;
+    if (app.refreshInterval) {
+        clearInterval(app.refreshInterval);
+    }
     
-    globalState.refreshInterval = setInterval(() => {
+    app.refreshInterval = setInterval(() => {
         refreshData();
-        refreshMarketData();
     }, 5000);
 }
 
 function stopAutoRefresh() {
-    if (globalState.refreshInterval) {
-        clearInterval(globalState.refreshInterval);
-        globalState.refreshInterval = null;
+    if (app.refreshInterval) {
+        clearInterval(app.refreshInterval);
+        app.refreshInterval = null;
+    }
+}
+
+function updateAutoRefreshUI() {
+    const autoRefreshBtn = document.getElementById('autoRefreshBtn');
+    const refreshIcon = document.getElementById('refreshIcon');
+    const autoRefreshText = document.getElementById('autoRefreshText');
+    
+    if (autoRefreshBtn) {
+        if (app.isAutoRefresh) {
+            autoRefreshBtn.classList.remove('btn-outline');
+            autoRefreshBtn.classList.add('btn-primary');
+            if (refreshIcon) refreshIcon.classList.add('animate-spin');
+        } else {
+            autoRefreshBtn.classList.remove('btn-primary');
+            autoRefreshBtn.classList.add('btn-outline');
+            if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+        }
+    }
+    
+    if (autoRefreshText) {
+        autoRefreshText.textContent = app.isAutoRefresh ? 'Auto-refresh ON' : 'Auto-refresh';
+    }
+}
+
+// Data Management Functions
+async function loadInitialData() {
+    try {
+        updateConnectionStatus('connecting');
+        
+        const popularSymbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'NVDA', 'META', 'NFLX'];
+        const [stockData, indices, newsData] = await Promise.all([
+            Promise.all(popularSymbols.slice(0, 6).map(symbol => fetchStockQuote(symbol))),
+            fetchMarketIndices(),
+            fetchNews()
+        ]);
+        
+        app.stocks = stockData.filter(stock => stock !== null);
+        app.marketIndices = indices;
+        app.news = newsData;
+        
+        if (app.stocks.length > 0) {
+            app.selectedStock = app.stocks[0];
+            app.chartData = generateMockChartData(app.selectedStock.symbol);
+        }
+        
+        app.lastUpdated = new Date();
+        updateConnectionStatus('connected');
+        
+        renderDashboard();
+        
+    } catch (error) {
+        console.error('Failed to load initial data:', error);
+        updateConnectionStatus('error');
     }
 }
 
 async function refreshData() {
-    if (!globalState.selectedStock) return;
+    if (!app.selectedStock) return;
     
     try {
-        // Refresh selected stock data
-        const updatedStock = await stockAPI.fetchStockQuote(globalState.selectedStock.symbol);
+        const [updatedStock, updatedIndices] = await Promise.all([
+            fetchStockQuote(app.selectedStock.symbol),
+            fetchMarketIndices()
+        ]);
+        
         if (updatedStock) {
-            globalState.selectedStock = updatedStock;
-            globalState.stocks = globalState.stocks.map(stock => 
+            app.selectedStock = updatedStock;
+            app.stocks = app.stocks.map(stock => 
                 stock.symbol === updatedStock.symbol ? updatedStock : stock
             );
+            app.chartData = generateMockChartData(app.selectedStock.symbol);
         }
-
-        // Refresh chart data
-        const intradayData = await stockAPI.fetchIntradayData(globalState.selectedStock.symbol);
-        globalState.chartData = intradayData;
         
-        globalState.lastUpdated = new Date();
-        updateLastUpdatedTime();
+        app.marketIndices = updatedIndices;
+        app.lastUpdated = new Date();
+        updateConnectionStatus('connected');
         
-        renderStockList();
         renderSelectedStock();
+        renderStockList();
+        renderMarketOverview();
         updateChart();
+        
     } catch (error) {
         console.error('Failed to refresh data:', error);
+        updateConnectionStatus('error');
     }
 }
 
-async function refreshMarketData() {
-    try {
-        // Refresh market indices
-        const indices = await stockAPI.fetchMarketIndices();
-        globalState.marketIndices = indices;
-        renderMarketIndices();
+function updateConnectionStatus(status) {
+    const statusIndicator = document.getElementById('statusIndicator');
+    const lastUpdatedText = document.getElementById('lastUpdatedText');
+    
+    if (statusIndicator) {
+        statusIndicator.className = 'status-indicator';
+        statusIndicator.classList.add(status);
+    }
+    
+    if (lastUpdatedText) {
+        switch (status) {
+            case 'connecting':
+                lastUpdatedText.textContent = 'Connecting...';
+                break;
+            case 'connected':
+                lastUpdatedText.textContent = app.lastUpdated 
+                    ? `Last updated: ${app.lastUpdated.toLocaleTimeString()}`
+                    : 'Connected';
+                break;
+            case 'error':
+                lastUpdatedText.textContent = 'Connection error';
+                break;
+        }
+    }
+}
 
-        // Update market status
-        const status = stockAPI.getMarketStatus();
-        updateMarketStatus(status);
+// Search Functions
+function setupSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
         
-        // Update API status
-        updateAPIStatus();
-    } catch (error) {
-        console.error('Failed to refresh market data:', error);
-    }
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 1) {
+            hideSearchResults();
+            return;
+        }
+        
+        searchTimeout = setTimeout(async () => {
+            try {
+                app.searchResults = await searchStocks(query);
+                renderSearchResults();
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }, 300);
+    });
+    
+    document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.search-container');
+        if (!searchContainer?.contains(e.target)) {
+            hideSearchResults();
+        }
+    });
 }
 
-async function handleSearch(event) {
-    const query = event.target.value;
-    const resultsContainer = document.getElementById('searchResults');
+function renderSearchResults() {
+    const searchResults = document.getElementById('searchResults');
+    if (!searchResults) return;
     
-    if (!resultsContainer) return;
-    
-    if (query.length < 1) {
-        resultsContainer.style.display = 'none';
+    if (app.searchResults.length === 0) {
+        searchResults.innerHTML = '<div class="search-result-item">No results found</div>';
+        searchResults.classList.add('visible');
         return;
     }
+    
+    searchResults.innerHTML = app.searchResults.map(result => `
+        <div class="search-result-item" onclick="selectSearchResult('${result.symbol}')">
+            <div class="search-result-symbol">${result.symbol}</div>
+            <div class="search-result-name">${result.name}</div>
+            <div class="search-result-exchange">${result.region}</div>
+        </div>
+    `).join('');
+    
+    searchResults.classList.add('visible');
+}
 
-    try {
-        const results = await stockAPI.searchStocks(query);
-        
-        if (results.length > 0) {
-            resultsContainer.innerHTML = results.map(result => `
-                <div class="search-result-item" onclick="selectSearchResult('${result.symbol}')">
-                    <div class="search-result-symbol">${result.symbol}</div>
-                    <div class="search-result-name">${result.name}</div>
-                    <div class="search-result-region">${result.region}</div>
-                </div>
-            `).join('');
-            resultsContainer.style.display = 'block';
-        } else {
-            resultsContainer.style.display = 'none';
-        }
-    } catch (error) {
-        console.error('Search failed:', error);
+function hideSearchResults() {
+    const searchResults = document.getElementById('searchResults');
+    if (searchResults) {
+        searchResults.classList.remove('visible');
     }
 }
 
 async function selectSearchResult(symbol) {
-    const searchInput = document.getElementById('searchInput');
-    const resultsContainer = document.getElementById('searchResults');
+    hideSearchResults();
     
-    if (searchInput) searchInput.value = '';
-    if (resultsContainer) resultsContainer.style.display = 'none';
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = '';
+    }
     
     await selectStock(symbol);
 }
 
+// Stock Management Functions
 async function selectStock(symbol) {
-    const loadingElement = document.getElementById('stocksLoading');
-    if (loadingElement) loadingElement.style.display = 'flex';
-    
     try {
-        const stockData = await stockAPI.fetchStockQuote(symbol);
+        const stockData = await fetchStockQuote(symbol);
         if (stockData) {
-            globalState.selectedStock = stockData;
+            app.selectedStock = stockData;
             
-            // Update stocks list if not already present
-            const exists = globalState.stocks.find(s => s.symbol === symbol);
+            const exists = app.stocks.find(s => s.symbol === symbol);
             if (!exists) {
-                globalState.stocks = [stockData, ...globalState.stocks.slice(0, 5)];
+                app.stocks = [stockData, ...app.stocks.slice(0, 5)];
             } else {
-                globalState.stocks = globalState.stocks.map(s => s.symbol === symbol ? stockData : s);
+                app.stocks = app.stocks.map(s => s.symbol === symbol ? stockData : s);
             }
-
-            // Fetch chart data
-            const intradayData = await stockAPI.fetchIntradayData(symbol);
-            globalState.chartData = intradayData;
             
-            renderStockList();
+            app.chartData = generateMockChartData(symbol);
+            
             renderSelectedStock();
+            renderStockList();
+            renderCompanyInfo();
             updateChart();
         }
     } catch (error) {
         console.error('Failed to select stock:', error);
-    } finally {
-        if (loadingElement) loadingElement.style.display = 'none';
     }
 }
 
-function toggleWatchlist() {
-    if (!globalState.selectedStock) return;
-    
-    const symbol = globalState.selectedStock.symbol;
-    const isInWatchlist = globalState.watchlist.includes(symbol);
-    
-    if (isInWatchlist) {
-        globalState.watchlist = globalState.watchlist.filter(s => s !== symbol);
+function toggleWatchlist(symbol) {
+    if (app.watchlist.includes(symbol)) {
+        app.watchlist = app.watchlist.filter(s => s !== symbol);
     } else {
-        globalState.watchlist.push(symbol);
+        app.watchlist.push(symbol);
     }
     
-    updateWatchlistButton();
-    renderWatchlist();
-    renderStockList(); // Update star icons
-}
-
-function updateWatchlistButton() {
-    if (!globalState.selectedStock) return;
-    
-    const btn = document.getElementById('watchlistBtn');
-    const icon = document.getElementById('watchlistIcon');
-    const text = document.getElementById('watchlistText');
-    
-    const isInWatchlist = globalState.watchlist.includes(globalState.selectedStock.symbol);
-    
-    if (icon) {
-        icon.className = `btn-icon ${isInWatchlist ? 'starred' : ''}`;
-    }
-    
-    if (text) {
-        text.textContent = isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist';
-    }
-}
-
-function switchTab(tabName) {
-    // Update tab triggers
-    document.querySelectorAll('.tab-trigger').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.tab === tabName);
-    });
-    
-    // Update tab content
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.toggle('active', content.id === tabName);
-    });
-    
-    // Render content for specific tabs
-    if (tabName === 'watchlist') {
-        renderWatchlist();
-    } else if (tabName === 'news') {
-        renderNews();
-    }
-}
-
-// ========================================
-// Rendering Functions
-// ========================================
-
-function renderStockList() {
-    const container = document.getElementById('stockList');
-    if (!container) return;
-    
-    container.innerHTML = globalState.stocks.map(stock => `
-        <div class="stock-card ${globalState.selectedStock?.symbol === stock.symbol ? 'selected' : ''}" 
-             onclick="selectStock('${stock.symbol}')">
-            <div class="stock-card-content">
-                <div class="stock-card-left">
-                    <button class="watchlist-star ${globalState.watchlist.includes(stock.symbol) ? 'starred' : ''}" 
-                            onclick="event.stopPropagation(); toggleStockWatchlist('${stock.symbol}')">
-                        <i data-lucide="star" class="star-icon"></i>
-                    </button>
-                    <div class="stock-info-mini">
-                        <div class="stock-symbol-mini">${stock.symbol}</div>
-                        <div class="stock-name-mini">${stock.name}</div>
-                    </div>
-                </div>
-                <div class="stock-card-right">
-                    <div class="stock-price-mini">$${stock.price.toFixed(2)}</div>
-                    <div class="stock-change-mini ${stock.change >= 0 ? 'positive' : 'negative'}">
-                        <i data-lucide="trending-${stock.change >= 0 ? 'up' : 'down'}" class="change-icon-mini"></i>
-                        ${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%
-                    </div>
-                </div>
-            </div>
-        </div>
-    `).join('');
-    
-    lucide.createIcons();
-}
-
-function toggleStockWatchlist(symbol) {
-    const isInWatchlist = globalState.watchlist.includes(symbol);
-    
-    if (isInWatchlist) {
-        globalState.watchlist = globalState.watchlist.filter(s => s !== symbol);
-    } else {
-        globalState.watchlist.push(symbol);
-    }
+    localStorage.setItem('stockTracker_watchlist', JSON.stringify(app.watchlist));
     
     renderStockList();
-    if (globalState.selectedStock?.symbol === symbol) {
-        updateWatchlistButton();
-    }
+    renderSelectedStock();
     renderWatchlist();
 }
 
-function renderSelectedStock() {
-    const container = document.getElementById('selectedStockContent');
-    if (!container || !globalState.selectedStock) return;
-    
-    const stock = globalState.selectedStock;
-    
-    // Update basic info
-    const elements = {
-        stockSymbol: stock.symbol,
-        stockName: stock.name,
-        currentPrice: `$${stock.price.toFixed(2)}`,
-        openPrice: `$${stock.open.toFixed(2)}`,
-        highPrice: `$${stock.high.toFixed(2)}`,
-        lowPrice: `$${stock.low.toFixed(2)}`,
-        volume: stock.volume,
-        marketCap: stock.marketCap,
-        peRatio: stock.peRatio > 0 ? stock.peRatio.toFixed(2) : 'N/A'
-    };
-    
-    Object.entries(elements).forEach(([id, value]) => {
-        const element = document.getElementById(id);
-        if (element) element.textContent = value;
-    });
-    
-    // Update price change
-    const priceChangeElement = document.getElementById('priceChange');
-    if (priceChangeElement) {
-        const isPositive = stock.change >= 0;
-        const icon = priceChangeElement.querySelector('.change-icon');
-        const span = priceChangeElement.querySelector('span');
-        
-        priceChangeElement.className = `price-change ${isPositive ? 'positive' : 'negative'}`;
-        if (icon) icon.setAttribute('data-lucide', `trending-${isPositive ? 'up' : 'down'}`);
-        if (span) span.textContent = `${isPositive ? '+' : ''}$${stock.change.toFixed(2)} (${isPositive ? '+' : ''}${stock.changePercent.toFixed(2)}%)`;
-    }
-    
-    // Update live badge
-    const liveBadge = document.getElementById('liveBadge');
-    if (liveBadge) {
-        const span = liveBadge.querySelector('span');
-        if (span) span.textContent = globalState.apiStatus.usingMockData ? 'Demo' : 'Live';
-    }
-    
-    // Update chart data type
-    const chartDataType = document.getElementById('chartDataType');
-    if (chartDataType) {
-        chartDataType.textContent = globalState.apiStatus.usingMockData ? 'Demo data' : 'Real-time data';
-    }
-    
-    updateWatchlistButton();
-    renderPopularStocks();
-    
-    container.style.display = 'block';
-    lucide.createIcons();
+function clearWatchlist() {
+    app.watchlist = [];
+    localStorage.setItem('stockTracker_watchlist', JSON.stringify(app.watchlist));
+    renderWatchlist();
 }
 
-function renderPopularStocks() {
-    const container = document.getElementById('popularStocks');
-    if (!container) return;
-    
-    container.innerHTML = globalState.stocks.slice(0, 6).map(stock => `
-        <div class="popular-stock-card" onclick="selectStock('${stock.symbol}')">
-            <div class="popular-stock-header">
-                <div class="popular-stock-info">
-                    <div class="popular-stock-symbol">${stock.symbol}</div>
-                    <div class="popular-stock-name">${stock.name}</div>
-                </div>
-                <div class="popular-stock-trend ${stock.change >= 0 ? 'positive' : 'negative'}">
-                    <i data-lucide="trending-${stock.change >= 0 ? 'up' : 'down'}" class="trend-icon"></i>
-                </div>
-            </div>
-            <div class="popular-stock-price">$${stock.price.toFixed(2)}</div>
-            <div class="popular-stock-change ${stock.change >= 0 ? 'positive' : 'negative'}">
-                ${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%
-            </div>
-        </div>
-    `).join('');
-    
-    lucide.createIcons();
-}
-
-function renderMarketIndices() {
-    const container = document.getElementById('marketIndices');
-    if (!container) return;
-    
-    if (globalState.marketIndices.length === 0) {
-        container.innerHTML = '<div class="loading-text">Loading market data...</div>';
-        return;
-    }
-    
-    container.innerHTML = globalState.marketIndices.map(index => `
-        <div class="market-index-card">
-            <span class="index-name">${index.name}</span>
-            <div class="index-data">
-                <div class="index-value">${index.value}</div>
-                <div class="index-change ${index.isPositive ? 'positive' : 'negative'}">
-                    ${index.changePercent}
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function renderWatchlist() {
-    const container = document.getElementById('watchlistContent');
-    if (!container) return;
-    
-    const watchlistStocks = globalState.stocks.filter(stock => 
-        globalState.watchlist.includes(stock.symbol)
-    );
-    
-    if (watchlistStocks.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <p>Your watchlist is empty. Add stocks by clicking the star icon.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = `
-        <div class="watchlist-items">
-            ${watchlistStocks.map(stock => `
-                <div class="watchlist-item" onclick="selectStock('${stock.symbol}')">
-                    <div class="watchlist-item-left">
-                        <button class="watchlist-star starred" 
-                                onclick="event.stopPropagation(); toggleStockWatchlist('${stock.symbol}')">
-                            <i data-lucide="star" class="star-icon"></i>
-                        </button>
-                        <div class="watchlist-stock-info">
-                            <div class="watchlist-stock-symbol">${stock.symbol}</div>
-                            <div class="watchlist-stock-name">${stock.name}</div>
-                        </div>
-                    </div>
-                    <div class="watchlist-item-right">
-                        <div class="watchlist-stock-price">$${stock.price.toFixed(2)}</div>
-                        <div class="watchlist-stock-change ${stock.change >= 0 ? 'positive' : 'negative'}">
-                            <i data-lucide="trending-${stock.change >= 0 ? 'up' : 'down'}" class="change-icon-small"></i>
-                            ${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%
-                        </div>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-    
-    lucide.createIcons();
-}
-
-function renderNews() {
-    const container = document.getElementById('newsContent');
-    if (!container) return;
-    
-    if (globalState.newsItems.length === 0) {
-        container.innerHTML = '<div class="loading-text">Loading market news...</div>';
-        return;
-    }
-    
-    container.innerHTML = `
-        <div class="news-items">
-            ${globalState.newsItems.map((item, index) => `
-                <div class="news-item" onclick="window.open('${item.url}', '_blank')">
-                    <div class="news-content">
-                        ${item.image ? `
-                            <img src="${item.image}" alt="" class="news-image" 
-                                 onerror="this.style.display='none'">
-                        ` : ''}
-                        <div class="news-text">
-                            <h4 class="news-title">${item.title}</h4>
-                            <p class="news-summary">${item.summary}</p>
-                            <div class="news-meta">
-                                <span class="news-source">${item.source}</span>
-                                <span class="news-time">${item.time}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
-
-// ========================================
 // Chart Functions
-// ========================================
-
 function updateChart() {
     const canvas = document.getElementById('stockChart');
-    const loadingElement = document.getElementById('chartLoading');
+    if (!canvas || app.chartData.length === 0) return;
     
-    if (!canvas || globalState.chartData.length === 0) {
-        if (loadingElement) loadingElement.style.display = 'flex';
+    if (app.chartInstance) {
+        app.chartInstance.destroy();
+    }
+    
+    if (typeof Chart === 'undefined') {
+        drawCanvasChart(canvas);
         return;
     }
     
-    if (loadingElement) loadingElement.style.display = 'none';
-    
-    try {
-        // Try Chart.js first
-        if (window.Chart) {
-            updateChartJS(canvas);
-        } else {
-            // Fallback to canvas drawing
-            updateCanvasChart(canvas);
-        }
-    } catch (error) {
-        console.error('Chart.js failed, using fallback chart:', error);
-        updateCanvasChart(canvas);
-        
-        const fallbackBadge = document.getElementById('fallbackBadge');
-        if (fallbackBadge) fallbackBadge.style.display = 'inline-block';
-    }
-}
-
-function updateChartJS(canvas) {
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
-    // Destroy existing chart
-    if (globalState.chartInstance) {
-        globalState.chartInstance.destroy();
-    }
-    
-    const isPositive = globalState.selectedStock ? globalState.selectedStock.change >= 0 : true;
+    const isPositive = app.selectedStock ? app.selectedStock.change >= 0 : true;
     const color = isPositive ? '#16a34a' : '#dc2626';
     
-    globalState.chartInstance = new Chart(ctx, {
+    app.chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: globalState.chartData.map(d => d.time),
+            labels: app.chartData.map(d => d.time),
             datasets: [{
-                label: globalState.selectedStock?.symbol || 'Price',
-                data: globalState.chartData.map(d => d.price),
+                label: app.selectedStock?.symbol || 'Price',
+                data: app.chartData.map(d => d.price),
                 borderColor: color,
                 backgroundColor: color + '20',
                 borderWidth: 2,
                 fill: true,
                 tension: 0.4,
                 pointRadius: 0,
-                pointHoverRadius: 6,
-                pointHoverBackgroundColor: color,
-                pointHoverBorderColor: '#ffffff',
-                pointHoverBorderWidth: 2
+                pointHoverRadius: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            },
             plugins: {
-                legend: {
-                    display: false
-                },
+                legend: { display: false },
                 tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
+                    backgroundColor: app.isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                    titleColor: app.isDarkMode ? '#ffffff' : '#000000',
+                    bodyColor: app.isDarkMode ? '#ffffff' : '#000000',
                     borderColor: color,
                     borderWidth: 1,
                     cornerRadius: 8,
                     displayColors: false,
                     callbacks: {
-                        title: function(context) {
-                            return context[0].label;
-                        },
                         label: function(context) {
                             return `$${context.parsed.y.toFixed(2)}`;
                         }
@@ -1302,40 +733,34 @@ function updateChartJS(canvas) {
                 x: {
                     display: true,
                     grid: {
-                        display: true,
-                        color: 'rgba(0, 0, 0, 0.1)'
+                        color: app.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                     },
                     ticks: {
                         maxTicksLimit: 8,
-                        color: '#666'
+                        color: app.isDarkMode ? '#94a3b8' : '#666'
                     }
                 },
                 y: {
                     display: true,
                     grid: {
-                        display: true,
-                        color: 'rgba(0, 0, 0, 0.1)'
+                        color: app.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                     },
                     ticks: {
                         callback: function(value) {
                             return '$' + value.toFixed(2);
                         },
-                        color: '#666'
+                        color: app.isDarkMode ? '#94a3b8' : '#666'
                     }
                 }
-            },
-            animation: {
-                duration: 750,
-                easing: 'easeInOutQuart'
             }
         }
     });
 }
 
-function updateCanvasChart(canvas) {
+function drawCanvasChart(canvas) {
     const ctx = canvas.getContext('2d');
-    
-    // Set canvas size
+    if (!ctx || app.chartData.length === 0) return;
+
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * window.devicePixelRatio;
     canvas.height = rect.height * window.devicePixelRatio;
@@ -1347,26 +772,23 @@ function updateCanvasChart(canvas) {
     const chartWidth = width - 2 * padding;
     const chartHeight = height - 2 * padding;
 
-    // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Find min and max values
-    const prices = globalState.chartData.map(d => d.price);
+    const prices = app.chartData.map(d => d.price);
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     const priceRange = maxPrice - minPrice || 1;
 
-    // Set colors
-    const isPositive = globalState.selectedStock ? globalState.selectedStock.change >= 0 : true;
+    const isPositive = app.selectedStock ? app.selectedStock.change >= 0 : true;
     const lineColor = isPositive ? '#16a34a' : '#dc2626';
-    const gradientColor = isPositive ? '#16a34a20' : '#dc262620';
+    const gridColor = app.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const textColor = app.isDarkMode ? '#94a3b8' : '#666';
 
-    // Draw grid lines
-    ctx.strokeStyle = '#e5e5e5';
+    // Draw grid
+    ctx.strokeStyle = gridColor;
     ctx.lineWidth = 1;
     ctx.setLineDash([2, 2]);
 
-    // Horizontal grid lines
     for (let i = 0; i <= 4; i++) {
         const y = padding + (i * chartHeight) / 4;
         ctx.beginPath();
@@ -1375,52 +797,15 @@ function updateCanvasChart(canvas) {
         ctx.stroke();
     }
 
-    // Vertical grid lines
-    for (let i = 0; i <= 4; i++) {
-        const x = padding + (i * chartWidth) / 4;
-        ctx.beginPath();
-        ctx.moveTo(x, padding);
-        ctx.lineTo(x, height - padding);
-        ctx.stroke();
-    }
-
     ctx.setLineDash([]);
 
-    // Create gradient
-    const gradient = ctx.createLinearGradient(0, padding, 0, height - padding);
-    gradient.addColorStop(0, gradientColor);
-    gradient.addColorStop(1, 'rgba(0,0,0,0)');
-
-    // Draw filled area
-    ctx.beginPath();
-    globalState.chartData.forEach((point, index) => {
-        const x = padding + (index * chartWidth) / (globalState.chartData.length - 1);
-        const y = height - padding - ((point.price - minPrice) / priceRange) * chartHeight;
-        
-        if (index === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    });
-    
-    // Complete the area
-    const lastX = padding + chartWidth;
-    const lastY = height - padding - ((globalState.chartData[globalState.chartData.length - 1].price - minPrice) / priceRange) * chartHeight;
-    ctx.lineTo(lastX, height - padding);
-    ctx.lineTo(padding, height - padding);
-    ctx.closePath();
-    
-    ctx.fillStyle = gradient;
-    ctx.fill();
-
-    // Draw the line
+    // Draw line
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = 2;
     ctx.beginPath();
 
-    globalState.chartData.forEach((point, index) => {
-        const x = padding + (index * chartWidth) / (globalState.chartData.length - 1);
+    app.chartData.forEach((point, index) => {
+        const x = padding + (index * chartWidth) / (app.chartData.length - 1);
         const y = height - padding - ((point.price - minPrice) / priceRange) * chartHeight;
         
         if (index === 0) {
@@ -1432,49 +817,11 @@ function updateCanvasChart(canvas) {
 
     ctx.stroke();
 
-    // Draw data points
-    ctx.fillStyle = lineColor;
-    globalState.chartData.forEach((point, index) => {
-        const x = padding + (index * chartWidth) / (globalState.chartData.length - 1);
-        const y = height - padding - ((point.price - minPrice) / priceRange) * chartHeight;
-        
-        ctx.beginPath();
-        ctx.arc(x, y, 2, 0, 2 * Math.PI);
-        ctx.fill();
-    });
-
-    // Draw axes
-    ctx.strokeStyle = '#666';
-    ctx.lineWidth = 1;
-    
-    // Y-axis
-    ctx.beginPath();
-    ctx.moveTo(padding, padding);
-    ctx.lineTo(padding, height - padding);
-    ctx.stroke();
-
-    // X-axis
-    ctx.beginPath();
-    ctx.moveTo(padding, height - padding);
-    ctx.lineTo(width - padding, height - padding);
-    ctx.stroke();
-
-    // Add labels
-    ctx.fillStyle = '#666';
+    // Draw labels
+    ctx.fillStyle = textColor;
     ctx.font = '12px Inter, sans-serif';
-    ctx.textAlign = 'center';
-
-    // X-axis labels (time)
-    const labelStep = Math.ceil(globalState.chartData.length / 6);
-    globalState.chartData.forEach((point, index) => {
-        if (index % labelStep === 0) {
-            const x = padding + (index * chartWidth) / (globalState.chartData.length - 1);
-            ctx.fillText(point.time, x, height - padding + 20);
-        }
-    });
-
-    // Y-axis labels (price)
     ctx.textAlign = 'right';
+    
     for (let i = 0; i <= 4; i++) {
         const y = padding + (i * chartHeight) / 4;
         const price = maxPrice - (i * priceRange) / 4;
@@ -1482,17 +829,463 @@ function updateCanvasChart(canvas) {
     }
 }
 
-// ========================================
-// Initialize Auto-refresh on Dashboard Load
-// ========================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Start auto-refresh if on dashboard page
-    if (document.getElementById('autoRefreshBtn')) {
-        setTimeout(() => {
-            if (globalState.isAutoRefresh) {
-                startAutoRefresh();
-            }
-        }, 1000);
+// Tab Management
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active');
+    
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(tabName)?.classList.add('active');
+    
+    if (tabName === 'news') {
+        renderNews();
+    } else if (tabName === 'watchlist') {
+        renderWatchlist();
     }
+}
+
+// News Functions
+function filterNews(category) {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-filter="${category}"]`)?.classList.add('active');
+    
+    renderNews(category);
+}
+
+async function refreshNews() {
+    try {
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+        app.news = await fetchNews(activeFilter);
+        renderNews(activeFilter);
+    } catch (error) {
+        console.error('Failed to refresh news:', error);
+    }
+}
+
+// Render Functions
+function renderDashboard() {
+    renderMarketOverview();
+    renderStockList();
+    renderSelectedStock();
+    renderCompanyInfo();
+    renderWatchlist();
+    renderNews();
+    updateChart();
+}
+
+function renderMarketOverview() {
+    const container = document.getElementById('marketOverview');
+    if (!container) return;
+    
+    if (app.marketIndices.length === 0) {
+        container.innerHTML = `
+            <div class="overview-loading">
+                <div class="loading-spinner"></div>
+                <span>Loading market data...</span>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = app.marketIndices.map(index => `
+        <div class="overview-item">
+            <span class="overview-name">${index.name}</span>
+            <div class="overview-values">
+                <div class="overview-value">${index.value.toLocaleString()}</div>
+                <div class="overview-change ${isPositive(index.change) ? 'positive' : 'negative'}">
+                    ${isPositive(index.change) ? '+' : ''}${formatNumber(index.changePercent, 2)}%
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderStockList() {
+    const container = document.getElementById('stockList');
+    if (!container) return;
+    
+    if (app.stocks.length === 0) {
+        container.innerHTML = `
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <span>Loading stocks...</span>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = app.stocks.map(stock => `
+        <div class="stock-item ${app.selectedStock?.symbol === stock.symbol ? 'active' : ''}" 
+             onclick="selectStock('${stock.symbol}')">
+            <div class="stock-item-content">
+                <div class="stock-item-left">
+                    <button class="stock-star ${app.watchlist.includes(stock.symbol) ? 'active' : ''}" 
+                            onclick="event.stopPropagation(); toggleWatchlist('${stock.symbol}')">
+                        <i data-lucide="star"></i>
+                    </button>
+                    <div class="stock-info">
+                        <div class="stock-symbol">${stock.symbol}</div>
+                        <div class="stock-name">${stock.name}</div>
+                    </div>
+                </div>
+                <div class="stock-item-right">
+                    <div class="stock-price">${formatCurrency(stock.price)}</div>
+                    <div class="stock-change ${isPositive(stock.change) ? 'positive' : 'negative'}">
+                        <i data-lucide="trending-up"></i>
+                        ${isPositive(stock.change) ? '+' : ''}${formatNumber(stock.changePercent, 2)}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    lucide.createIcons();
+}
+
+function renderSelectedStock() {
+    const container = document.getElementById('stockDetailsCard');
+    if (!container) return;
+    
+    if (!app.selectedStock) {
+        container.innerHTML = `
+            <div class="stock-details-loading">
+                <div class="loading-spinner"></div>
+                <span>Select a stock to view details</span>
+            </div>
+        `;
+        return;
+    }
+    
+    const stock = app.selectedStock;
+    const isInWatchlist = app.watchlist.includes(stock.symbol);
+    
+    container.innerHTML = `
+        <div class="card-header">
+            <div class="stock-header">
+                <div class="stock-title-section">
+                    <h2 class="stock-symbol-large">${stock.symbol}</h2>
+                    <span class="badge">${stock.name}</span>
+                    ${app.isAutoRefresh ? `
+                        <span class="badge live-badge">
+                            <i data-lucide="refresh-cw" class="animate-spin"></i>
+                            Live
+                        </span>
+                    ` : ''}
+                </div>
+                <button class="btn btn-outline" onclick="toggleWatchlist('${stock.symbol}')">
+                    <i data-lucide="star" class="${isInWatchlist ? 'star-filled' : ''}"></i>
+                    ${isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                </button>
+            </div>
+        </div>
+        <div class="card-content">
+            <div class="stock-details-grid">
+                <div class="stock-info">
+                    <div class="stock-price-section">
+                        <div class="stock-price-label">
+                            <i data-lucide="dollar-sign"></i>
+                            <span>Current Price</span>
+                        </div>
+                        <div class="stock-price-large">${formatCurrency(stock.price)}</div>
+                        <div class="stock-change-large ${isPositive(stock.change) ? 'positive' : 'negative'}">
+                            <i data-lucide="trending-up" class="change-icon"></i>
+                            <span>${stock.change >= 0 ? '+' : ''}${formatCurrency(stock.change)} 
+                            (${stock.change >= 0 ? '+' : ''}${formatNumber(stock.changePercent, 2)}%)</span>
+                        </div>
+                    </div>
+
+                    <div class="stock-metrics">
+                        <div class="metric">
+                            <div class="metric-label">Open</div>
+                            <div class="metric-value">${formatCurrency(stock.open)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">High</div>
+                            <div class="metric-value text-green">${formatCurrency(stock.high)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Low</div>
+                            <div class="metric-value text-red">${formatCurrency(stock.low)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Volume</div>
+                            <div class="metric-value">${formatVolume(stock.volume)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Market Cap</div>
+                            <div class="metric-value">${formatMarketCap(stock.marketCap)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Currency</div>
+                            <div class="metric-value">${stock.currency || 'USD'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h4>Intraday Chart</h4>
+                        <div class="chart-info">
+                            <span>Last 5 hours</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="stockChart"></canvas>
+                        ${app.chartData.length === 0 ? `
+                            <div class="chart-loading">
+                                <div class="loading-spinner"></div>
+                                <span>Loading chart data...</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    lucide.createIcons();
+    setTimeout(() => updateChart(), 100);
+}
+
+function renderCompanyInfo() {
+    const container = document.getElementById('companyInfoCard');
+    if (!container || !app.selectedStock) {
+        if (container) container.style.display = 'none';
+        return;
+    }
+    
+    const stock = app.selectedStock;
+    container.style.display = 'block';
+    
+    const companyInfo = document.getElementById('companyInfo');
+    if (companyInfo) {
+        companyInfo.innerHTML = `
+            <div class="company-info-grid">
+                <div class="company-info-item">
+                    <div class="company-info-label">Industry</div>
+                    <div class="company-info-value">${stock.industry || 'N/A'}</div>
+                </div>
+                <div class="company-info-item">
+                    <div class="company-info-label">
+                        <i data-lucide="users"></i>
+                        Employees
+                    </div>
+                    <div class="company-info-value">${stock.employees ? stock.employees.toLocaleString() : 'N/A'}</div>
+                </div>
+                <div class="company-info-item">
+                    <div class="company-info-label">
+                        <i data-lucide="globe"></i>
+                        Country
+                    </div>
+                    <div class="company-info-value">${stock.country || 'N/A'}</div>
+                </div>
+                <div class="company-info-item">
+                    <div class="company-info-label">Market Cap</div>
+                    <div class="company-info-value">${formatMarketCap(stock.marketCap)}</div>
+                </div>
+                <div class="company-info-item">
+                    <div class="company-info-label">
+                        <i data-lucide="external-link"></i>
+                        Website
+                    </div>
+                    <div class="company-info-value">
+                        ${stock.website ? `<a href="${stock.website}" target="_blank" class="company-website">Visit Website</a>` : 'N/A'}
+                    </div>
+                </div>
+                <div class="company-info-item">
+                    <div class="company-info-label">Currency</div>
+                    <div class="company-info-value">${stock.currency || 'USD'}</div>
+                </div>
+            </div>
+            ${stock.description ? `
+                <div class="company-description-section">
+                    <div class="company-info-label">About the Company</div>
+                    <p class="company-description">${stock.description}</p>
+                </div>
+            ` : ''}
+        `;
+        
+        lucide.createIcons();
+    }
+}
+
+function renderWatchlist() {
+    const container = document.getElementById('watchlistContent');
+    if (!container) return;
+    
+    const watchlistStocks = app.stocks.filter(stock => app.watchlist.includes(stock.symbol));
+    
+    if (watchlistStocks.length === 0) {
+        container.innerHTML = `
+            <div class="watchlist-empty">
+                <i data-lucide="star" class="empty-icon"></i>
+                <p>Your watchlist is empty</p>
+                <small>Add stocks by clicking the star icon</small>
+            </div>
+        `;
+        lucide.createIcons();
+        return;
+    }
+    
+    container.innerHTML = watchlistStocks.map(stock => `
+        <div class="watchlist-item" onclick="selectStock('${stock.symbol}')">
+            <div class="watchlist-left">
+                <button class="watchlist-star" onclick="event.stopPropagation(); toggleWatchlist('${stock.symbol}')">
+                    <i data-lucide="star" class="star-filled"></i>
+                </button>
+                <div class="watchlist-info">
+                    <div class="watchlist-symbol">${stock.symbol}</div>
+                    <div class="watchlist-name">${stock.name}</div>
+                </div>
+            </div>
+            <div class="watchlist-right">
+                <div class="watchlist-price">${formatCurrency(stock.price)}</div>
+                <div class="watchlist-change ${isPositive(stock.change) ? 'positive' : 'negative'}">
+                    <i data-lucide="trending-up"></i>
+                    ${isPositive(stock.change) ? '+' : ''}${formatNumber(stock.changePercent, 2)}%
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    lucide.createIcons();
+}
+
+function renderNews(category = 'all') {
+    const newsList = document.getElementById('newsList');
+    if (!newsList) return;
+    
+    let filteredNews = app.news;
+    if (category !== 'all') {
+        filteredNews = app.news.filter(item => item.category === category);
+    }
+    
+    if (filteredNews.length === 0) {
+        newsList.innerHTML = `
+            <div class="news-loading">
+                <span>No news available for this category</span>
+            </div>
+        `;
+        return;
+    }
+    
+    newsList.innerHTML = filteredNews.map(item => `
+        <div class="news-item ${item.category}">
+            <div class="news-header">
+                <h4 class="news-title">${item.title}</h4>
+                <span class="news-badge ${item.category}">
+                    ${item.category === 'indian' ? '🇮🇳 India' : '🌐 Global'}
+                </span>
+            </div>
+            ${item.summary ? `<p class="news-summary">${item.summary}</p>` : ''}
+            <div class="news-meta">
+                <span class="news-source">${item.source}</span>
+                <span class="news-time">${item.time}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Homepage Functions
+function loadHomePageMarketData() {
+    const container = document.getElementById('homeMarketPreview');
+    if (!container) return;
+    
+    const popularStocks = ['AAPL', 'GOOGL', 'MSFT', 'TSLA'];
+    
+    Promise.all(popularStocks.map(symbol => fetchStockQuote(symbol)))
+        .then(stocks => {
+            const validStocks = stocks.filter(stock => stock !== null).slice(0, 4);
+            
+            container.innerHTML = validStocks.map(stock => `
+                <div class="market-card">
+                    <div class="market-card-header">
+                        <h3 class="market-symbol">${stock.symbol}</h3>
+                        <div class="trend-indicator ${isPositive(stock.change) ? 'positive' : 'negative'}">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="market-price">${formatCurrency(stock.price)}</div>
+                    <div class="market-change ${isPositive(stock.change) ? 'positive' : 'negative'}">
+                        ${isPositive(stock.change) ? '+' : ''}${formatNumber(stock.changePercent, 2)}%
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        })
+        .catch(error => {
+            console.error('Failed to load homepage market data:', error);
+        });
+}
+
+// Page Initialization
+function initializePage() {
+    // Initialize theme first
+    initializeTheme();
+    
+    if (app.currentPage === 'dashboard') {
+        initializeDashboard();
+    } else {
+        initializeHomepage();
+    }
+    
+    // Initialize Lucide icons
+    lucide.createIcons();
+}
+
+function initializeHomepage() {
+    loadHomePageMarketData();
+}
+
+function initializeDashboard() {
+    setupSearch();
+    updateAutoRefreshUI();
+    loadInitialData();
+    
+    if (app.isAutoRefresh) {
+        startAutoRefresh();
+    }
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', initializePage);
+
+document.addEventListener('visibilitychange', () => {
+    if (app.currentPage === 'dashboard') {
+        if (document.hidden) {
+            stopAutoRefresh();
+        } else if (app.isAutoRefresh) {
+            startAutoRefresh();
+        }
+    }
+});
+
+window.addEventListener('resize', () => {
+    if (app.currentPage === 'dashboard' && app.chartData.length > 0) {
+        setTimeout(() => updateChart(), 100);
+    }
+});
+
+window.addEventListener('beforeunload', () => {
+    stopAutoRefresh();
+    if (app.chartInstance) {
+        try {
+            app.chartInstance.destroy();
+        } catch (error) {
+            console.log('Chart cleanup error:', error);
+        }
+    }
+});
+
+// Error handling
+window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
+    updateConnectionStatus('error');
 });
