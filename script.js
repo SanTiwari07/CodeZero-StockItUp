@@ -1328,3 +1328,18 @@ window.addEventListener('error', (event) => {
     console.error('Global error:', event.error);
     updateConnectionStatus('error');
 });
+
+function openVideoModal() {
+  const modal = document.getElementById("videoModal");
+  const video = document.getElementById("modalVideo");
+  modal.style.display = "flex";
+  video.play();
+}
+
+function closeVideoModal() {
+  const modal = document.getElementById("videoModal");
+  const video = document.getElementById("modalVideo");
+  video.pause();
+  video.currentTime = 0; // rewind to start
+  modal.style.display = "none";
+}
