@@ -107,7 +107,13 @@
 <details>
 <summary>Landing Page</summary>
 
-<img width="1145" height="2975" alt="index page" src="https://github.com/user-attachments/assets/74628342-956d-4f93-bf35-6d6a5067b8c4" />
+Light Theme
+
+<img width="1145" height="2975" alt="index page" src="https://github.com/user-attachments/assets/4b2f5da8-f832-4ec5-8208-89ec2d4962e1" />
+
+Dark Theme
+
+<img width="1145" height="2975" alt="index page black theme" src="https://github.com/user-attachments/assets/4a623820-c969-47d1-a8f1-da2efe8cbbd9" />
 
 </details>
 
@@ -115,7 +121,13 @@
 <details>
 <summary>Dashboard - Overview Tab</summary>
 
-  <img width="1145" height="2200" alt="dashboard page" src="https://github.com/user-attachments/assets/c0de780e-24bd-4e33-a8b6-da814a42b3b3" />
+Light Theme
+
+<img width="1145" height="2200" alt="dashboard page" src="https://github.com/user-attachments/assets/52fd5c89-625e-42ec-8efd-16ac532dbcca" />
+
+Dark Theme
+
+<img width="1145" height="2200" alt="dashboard page black theme" src="https://github.com/user-attachments/assets/f40eb6a4-7e8e-4c08-a293-a37c133f9403" />
 
 </details>
 
@@ -123,7 +135,14 @@
 
 <details>
 <summary>Watchlist Tab</summary>
-<img width="1918" height="954" alt="Wishlist" src="https://github.com/user-attachments/assets/5978a94e-65a1-47da-8cba-d8c7ec61f557" />
+
+Light Theme
+
+<img width="1145" height="1205" alt="Wishlist" src="https://github.com/user-attachments/assets/bdc16d97-6559-4306-8e46-3a04f2c39202" />
+
+Dark Theme
+
+<img width="1145" height="1205" alt="Wishlist black theme" src="https://github.com/user-attachments/assets/0c43253c-0f74-4d1c-b169-7c207fa47340" />
 
 </details>
 
