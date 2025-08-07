@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockItUp - Track Stocks Like a Pro</title>
+    <title>StockTracker - Track Stocks Like a Pro</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
@@ -13,12 +14,14 @@
         <div class="header-container">
             <div class="header-brand">
                 <i data-lucide="bar-chart-3" class="header-icon"></i>
-                <h1 class="header-title">StockItUp</h1>
+                <h1 class="header-title">StockTracker</h1>
             </div>
-            <button class="btn btn-outline" onclick="goToDashboard()">
-                Enter Dashboard
-                <i data-lucide="arrow-right" class="btn-icon"></i>
-            </button>
+
+            <button class="btn btn-ghost btn-sm theme-toggle" id="themeToggle" onclick="toggleTheme()">
+            <i data-lucide="sun" class="theme-icon sun-icon"></i>
+            <i data-lucide="moon" class="theme-icon moon-icon"></i>
+        </button>
+
         </div>
     </header>
 
@@ -34,10 +37,10 @@
                 <div class="hero-buttons">
                     <button class="btn btn-primary btn-lg" onclick="goToDashboard()">
                         Start Tracking Now
-                        <i data-lucide="arrow-right" class="btn-icon"></i>
+                        <i data-lucide="chevron-right" class="btn-icon"></i>
                     </button>
-                    <button class="btn btn-outline btn-lg">
-                        View Demo
+                    <button class="btn btn-outline btn-lg" onclick="scrollToFeatures()">
+                        Learn More
                     </button>
                 </div>
             </div>
@@ -46,35 +49,71 @@
 
     <!-- Market Preview Section -->
     <section class="market-preview">
-        <div class="market-preview-container">
+        <div class="section-container">
             <div class="section-header">
                 <h2 class="section-title">Live Market Preview</h2>
-                <p class="section-description">
-                    See real-time market data for popular stocks
-                </p>
+                <p class="section-description">See real-time market data for popular stocks</p>
             </div>
             
-            <div class="market-grid" id="marketPreview">
-                <!-- Market preview cards will be inserted here by JavaScript -->
+            <div class="market-grid" id="homeMarketPreview">
+                <!-- Loading skeletons -->
+                <div class="market-card skeleton-loading">
+                    <div class="market-card-header">
+                        <div class="skeleton-text skeleton-title"></div>
+                        <div class="trend-indicator">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="skeleton-text skeleton-price"></div>
+                    <div class="skeleton-text skeleton-change"></div>
+                </div>
+                <div class="market-card skeleton-loading">
+                    <div class="market-card-header">
+                        <div class="skeleton-text skeleton-title"></div>
+                        <div class="trend-indicator">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="skeleton-text skeleton-price"></div>
+                    <div class="skeleton-text skeleton-change"></div>
+                </div>
+                <div class="market-card skeleton-loading">
+                    <div class="market-card-header">
+                        <div class="skeleton-text skeleton-title"></div>
+                        <div class="trend-indicator">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="skeleton-text skeleton-price"></div>
+                    <div class="skeleton-text skeleton-change"></div>
+                </div>
+                <div class="market-card skeleton-loading">
+                    <div class="market-card-header">
+                        <div class="skeleton-text skeleton-title"></div>
+                        <div class="trend-indicator">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="skeleton-text skeleton-price"></div>
+                    <div class="skeleton-text skeleton-change"></div>
+                </div>
             </div>
             
-            <div class="market-preview-cta">
+            <div class="section-cta">
                 <button class="btn btn-primary btn-lg" onclick="goToDashboard()">
                     View Full Dashboard
-                    <i data-lucide="arrow-right" class="btn-icon"></i>
+                    <i data-lucide="chevron-right" class="btn-icon"></i>
                 </button>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section class="features">
-        <div class="features-container">
+    <section class="features" id="features">
+        <div class="section-container">
             <div class="section-header">
                 <h2 class="section-title">Everything You Need to Track Stocks</h2>
-                <p class="section-description">
-                    Powerful tools and insights to help you make smarter investment decisions
-                </p>
+                <p class="section-description">Powerful tools and insights to help you make smarter investment decisions</p>
             </div>
             
             <div class="features-grid">
@@ -83,9 +122,7 @@
                         <i data-lucide="trending-up"></i>
                     </div>
                     <h3 class="feature-title">Real-Time Data</h3>
-                    <p class="feature-description">
-                        Get live stock prices and market data updated in real-time to make informed decisions.
-                    </p>
+                    <p class="feature-description">Get live stock prices and market data updated in real-time to make informed decisions.</p>
                 </div>
 
                 <div class="feature-card">
@@ -93,9 +130,7 @@
                         <i data-lucide="star"></i>
                     </div>
                     <h3 class="feature-title">Personal Watchlist</h3>
-                    <p class="feature-description">
-                        Create and manage your personalized watchlist to track your favorite stocks effortlessly.
-                    </p>
+                    <p class="feature-description">Create and manage your personalized watchlist to track your favorite stocks effortlessly.</p>
                 </div>
 
                 <div class="feature-card">
@@ -103,9 +138,7 @@
                         <i data-lucide="bar-chart-3"></i>
                     </div>
                     <h3 class="feature-title">Interactive Charts</h3>
-                    <p class="feature-description">
-                        Visualize stock performance with beautiful, interactive charts and technical indicators.
-                    </p>
+                    <p class="feature-description">Visualize stock performance with beautiful, interactive charts and technical indicators.</p>
                 </div>
 
                 <div class="feature-card">
@@ -113,9 +146,7 @@
                         <i data-lucide="shield"></i>
                     </div>
                     <h3 class="feature-title">Market Analysis</h3>
-                    <p class="feature-description">
-                        Access comprehensive market analysis, news, and insights to stay ahead of trends.
-                    </p>
+                    <p class="feature-description">Access comprehensive market analysis, news, and insights to stay ahead of trends.</p>
                 </div>
 
                 <div class="feature-card">
@@ -123,9 +154,7 @@
                         <i data-lucide="smartphone"></i>
                     </div>
                     <h3 class="feature-title">Mobile Optimized</h3>
-                    <p class="feature-description">
-                        Trade and monitor your portfolio seamlessly across desktop and mobile devices.
-                    </p>
+                    <p class="feature-description">Trade and monitor your portfolio seamlessly across desktop and mobile devices.</p>
                 </div>
 
                 <div class="feature-card">
@@ -133,26 +162,8 @@
                         <i data-lucide="globe"></i>
                     </div>
                     <h3 class="feature-title">Global Markets</h3>
-                    <p class="feature-description">
-                        Track stocks from major exchanges worldwide including NYSE, NASDAQ, and more.
-                    </p>
+                    <p class="feature-description">Track stocks from major exchanges worldwide including NYSE, NASDAQ, and more.</p>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta">
-        <div class="cta-container">
-            <h2 class="cta-title">Ready to Start Your Investment Journey?</h2>
-            <p class="cta-description">
-                Join thousands of investors who trust StockTracker for their portfolio management
-            </p>
-            <div class="cta-buttons">
-                <button class="btn btn-secondary btn-lg" onclick="goToDashboard()">
-                    Get Started Free
-                    <i data-lucide="arrow-right" class="btn-icon"></i>
-                </button>
             </div>
         </div>
     </section>
@@ -162,25 +173,12 @@
         <div class="footer-container">
             <div class="footer-brand">
                 <i data-lucide="bar-chart-3" class="footer-icon"></i>
-                <span class="footer-title">StockItUp</span>
+                <span class="footer-title">StockTracker</span>
             </div>
-            <p class="footer-text">
-                © 2025 StockItUp Built for Hackathon, by PICTians.
-            </p>
+            <p class="footer-text">© 2025 StockTracker. Built for TechRush, by PICTians.</p>
         </div>
     </footer>
 
     <script src="script.js"></script>
-    <script>
-        // Initialize homepage
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-            initializeHomepage();
-        });
-
-        function goToDashboard() {
-            window.location.href = 'dashboard.html';
-        }
-    </script>
 </body>
 </html>
