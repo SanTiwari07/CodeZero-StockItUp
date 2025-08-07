@@ -256,26 +256,67 @@
     </footer>
 
     <script>
+      // Application state
+      let app = {
+        isDarkMode: false
+      };
+
       // Initialize Lucide icons
       lucide.createIcons();
+
+      // Initialize theme on page load
+      function initializeTheme() {
+        const savedTheme = localStorage.getItem('stockTracker_theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        app.isDarkMode = savedTheme ? savedTheme === 'dark' : prefersDark;
+        applyTheme();
+      }
+
+      // Apply theme
+      function applyTheme() {
+        if (app.isDarkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+
+      // Dark Mode Toggle Function - FIXED
+      function toggleTheme() {
+        app.isDarkMode = !app.isDarkMode;
+        applyTheme();
+        localStorage.setItem('stockTracker_theme', app.isDarkMode ? 'dark' : 'light');
+        console.log('Theme toggled to:', app.isDarkMode ? 'dark' : 'light');
+      }
+
+      // Dashboard Navigation Function - FIXED
+      function goToDashboard() {
+        console.log('Navigating to dashboard...');
+        window.location.href = 'dashboard.html';
+      }
 
       // Video Modal Functions
       function openVideoModal() {
         const modal = document.getElementById('videoModal');
         const video = document.getElementById('modalVideo');
         
-        modal.style.display = 'flex';
-        video.currentTime = 0; // Reset video to beginning
-        video.play(); // Auto-play when opened (optional)
+        if (modal && video) {
+          modal.style.display = 'flex';
+          video.currentTime = 0; // Reset video to beginning
+          video.play().catch(e => console.log('Video autoplay prevented:', e));
+        }
       }
 
       function closeVideoModal() {
         const modal = document.getElementById('videoModal');
         const video = document.getElementById('modalVideo');
         
-        modal.style.display = 'none';
-        video.pause(); // Pause video when modal closes
-        video.currentTime = 0; // Reset to beginning
+        if (modal && video) {
+          modal.style.display = 'none';
+          video.pause(); // Pause video when modal closes
+          video.currentTime = 0; // Reset to beginning
+        }
       }
 
       // Close modal when clicking outside the video
@@ -292,67 +333,64 @@
         }
       });
 
-      // Theme Toggle Function (placeholder)
-      function toggleTheme() {
-        // Add your theme toggle logic here
-        console.log('Theme toggle clicked');
-      }
+      // Initialize theme when DOM is loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        initializeTheme();
+        loadHomePageMarketData();
+      });
 
-      // Dashboard Navigation Function (placeholder)
-      function goToDashboard() {
-        // Add your navigation logic here
-        console.log('Navigate to dashboard');
+      // Market Preview Loading Function
+      function loadHomePageMarketData() {
+        // Simulate loading for demo purposes
+        setTimeout(() => {
+          const marketGrid = document.getElementById('homeMarketPreview');
+          if (marketGrid) {
+            marketGrid.innerHTML = `
+              <div class="market-card">
+                <div class="market-card-header">
+                  <h3 class="market-symbol">AAPL</h3>
+                  <div class="trend-indicator positive">
+                    <i data-lucide="trending-up"></i>
+                  </div>
+                </div>
+                <div class="market-price">$189.84</div>
+                <div class="market-change positive">+2.45 (+1.31%)</div>
+              </div>
+              <div class="market-card">
+                <div class="market-card-header">
+                  <h3 class="market-symbol">GOOGL</h3>
+                  <div class="trend-indicator negative">
+                    <i data-lucide="trending-down"></i>
+                  </div>
+                </div>
+                <div class="market-price">$2,847.32</div>
+                <div class="market-change negative">-12.45 (-0.43%)</div>
+              </div>
+              <div class="market-card">
+                <div class="market-card-header">
+                  <h3 class="market-symbol">MSFT</h3>
+                  <div class="trend-indicator positive">
+                    <i data-lucide="trending-up"></i>
+                  </div>
+                </div>
+                <div class="market-price">$412.78</div>
+                <div class="market-change positive">+5.67 (+1.39%)</div>
+              </div>
+              <div class="market-card">
+                <div class="market-card-header">
+                  <h3 class="market-symbol">TSLA</h3>
+                  <div class="trend-indicator negative">
+                    <i data-lucide="trending-down"></i>
+                  </div>
+                </div>
+                <div class="market-price">$248.91</div>
+                <div class="market-change negative">-8.32 (-3.24%)</div>
+              </div>
+            `;
+            lucide.createIcons();
+          }
+        }, 2000);
       }
-
-      // Market Preview Loading Simulation
-      setTimeout(() => {
-        const marketGrid = document.getElementById('homeMarketPreview');
-        if (marketGrid) {
-          marketGrid.innerHTML = `
-            <div class="market-card">
-              <div class="market-card-header">
-                <span class="market-symbol">AAPL</span>
-                <div class="trend-indicator positive">
-                  <i data-lucide="trending-up"></i>
-                </div>
-              </div>
-              <div class="market-price">$150.25</div>
-              <div class="market-change positive">+2.45 (+1.66%)</div>
-            </div>
-            <div class="market-card">
-              <div class="market-card-header">
-                <span class="market-symbol">GOOGL</span>
-                <div class="trend-indicator positive">
-                  <i data-lucide="trending-up"></i>
-                </div>
-              </div>
-              <div class="market-price">$2,750.80</div>
-              <div class="market-change positive">+15.20 (+0.56%)</div>
-            </div>
-            <div class="market-card">
-              <div class="market-card-header">
-                <span class="market-symbol">TSLA</span>
-                <div class="trend-indicator negative">
-                  <i data-lucide="trending-down"></i>
-                </div>
-              </div>
-              <div class="market-price">$245.67</div>
-              <div class="market-change negative">-3.21 (-1.29%)</div>
-            </div>
-            <div class="market-card">
-              <div class="market-card-header">
-                <span class="market-symbol">MSFT</span>
-                <div class="trend-indicator positive">
-                  <i data-lucide="trending-up"></i>
-                </div>
-              </div>
-              <div class="market-price">$380.45</div>
-              <div class="market-change positive">+5.67 (+1.51%)</div>
-            </div>
-          `;
-          lucide.createIcons();
-        }
-      }, 2000);
     </script>
   </body>
 </html>
