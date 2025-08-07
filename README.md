@@ -7,10 +7,10 @@
 ---
 
 ## 📁 Project Structure
-├── index.html # Landing page with features overview and preview
-├── dashboard.html # Real-time stock dashboard (core app)
-├── styles.css # Complete styling with dark mode + responsiveness
-└── script.js # JavaScript logic for API, charts, interactivity
+├── index.html # Landing page with features overview and preview    
+├── dashboard.html # Real-time stock dashboard (core app)    
+├── styles.css # Complete styling with dark mode + responsiveness    
+└── script.js # JavaScript logic for API, charts, interactivity    
 
 
 ---
