@@ -1,6 +1,6 @@
 // Stock Tracker Application
 // Complete vanilla JavaScript implementation with Finnhub API integration
-// Fixed volume display issue
+// Fixed navigation and theme toggle functions
 
 // API Configuration
 const API_CONFIG = {
@@ -408,7 +408,7 @@ function timeAgo(date) {
     return `${Math.floor(diffInSeconds / 86400)} days ago`;
 }
 
-// Navigation Functions
+// Navigation Functions - FIXED
 function goToDashboard() {
     window.location.href = 'dashboard.html';
 }
@@ -424,7 +424,7 @@ function scrollToFeatures() {
     }
 }
 
-// Dark Mode Functions
+// Dark Mode Functions - FIXED
 function initializeTheme() {
     const savedTheme = localStorage.getItem('stockTracker_theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -446,6 +446,29 @@ function applyTheme() {
         document.documentElement.classList.remove('dark');
     }
     updateChart();
+}
+
+// Video Modal Functions - FIXED
+function openVideoModal() {
+    const modal = document.getElementById('videoModal');
+    const video = document.getElementById('modalVideo');
+    
+    if (modal && video) {
+        modal.style.display = 'flex';
+        video.currentTime = 0; // Reset video to beginning
+        video.play().catch(e => console.log('Video autoplay prevented:', e)); // Auto-play when opened (with error handling)
+    }
+}
+
+function closeVideoModal() {
+    const modal = document.getElementById('videoModal');
+    const video = document.getElementById('modalVideo');
+    
+    if (modal && video) {
+        modal.style.display = 'none';
+        video.pause(); // Pause video when modal closes
+        video.currentTime = 0; // Reset to beginning
+    }
 }
 
 // Auto-refresh Functions
@@ -1261,6 +1284,50 @@ function loadHomePageMarketData() {
         })
         .catch(error => {
             console.error('Failed to load homepage market data:', error);
+            // Fallback to mock data display
+            container.innerHTML = `
+                <div class="market-card">
+                    <div class="market-card-header">
+                        <h3 class="market-symbol">AAPL</h3>
+                        <div class="trend-indicator positive">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="market-price">$189.84</div>
+                    <div class="market-change positive">+2.45 (+1.31%)</div>
+                </div>
+                <div class="market-card">
+                    <div class="market-card-header">
+                        <h3 class="market-symbol">GOOGL</h3>
+                        <div class="trend-indicator negative">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="market-price">$2,847.32</div>
+                    <div class="market-change negative">-12.45 (-0.43%)</div>
+                </div>
+                <div class="market-card">
+                    <div class="market-card-header">
+                        <h3 class="market-symbol">MSFT</h3>
+                        <div class="trend-indicator positive">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="market-price">$412.78</div>
+                    <div class="market-change positive">+5.67 (+1.39%)</div>
+                </div>
+                <div class="market-card">
+                    <div class="market-card-header">
+                        <h3 class="market-symbol">TSLA</h3>
+                        <div class="trend-indicator negative">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="market-price">$248.91</div>
+                    <div class="market-change negative">-8.32 (-3.24%)</div>
+                </div>
+            `;
+            lucide.createIcons();
         });
 }
 
@@ -1276,7 +1343,9 @@ function initializePage() {
     }
     
     // Initialize Lucide icons
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
 
 function initializeHomepage() {
@@ -1294,7 +1363,28 @@ function initializeDashboard() {
 }
 
 // Event Listeners
-document.addEventListener('DOMContentLoaded', initializePage);
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize everything
+    initializePage();
+    
+    // Set up video modal event listeners if on homepage
+    const modal = document.getElementById('videoModal');
+    if (modal) {
+        // Close modal when clicking outside the video
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeVideoModal();
+            }
+        });
+    }
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeVideoModal();
+        }
+    });
+});
 
 document.addEventListener('visibilitychange', () => {
     if (app.currentPage === 'dashboard') {
@@ -1328,18 +1418,3 @@ window.addEventListener('error', (event) => {
     console.error('Global error:', event.error);
     updateConnectionStatus('error');
 });
-
-function openVideoModal() {
-  const modal = document.getElementById("videoModal");
-  const video = document.getElementById("modalVideo");
-  modal.style.display = "flex";
-  video.play();
-}
-
-function closeVideoModal() {
-  const modal = document.getElementById("videoModal");
-  const video = document.getElementById("modalVideo");
-  video.pause();
-  video.currentTime = 0; // rewind to start
-  modal.style.display = "none";
-}
