@@ -109,10 +109,16 @@
 <img src="assets/landing.png" alt="Landing Page Screenshot" />
 </details>
 
+
 <details>
 <summary>Dashboard - Overview Tab</summary>
 <img src="assets/dashboard-overview.png" alt="Dashboard Overview Screenshot" />
 </details>
+<img width="1895" height="967" alt="Screenshot 2025-08-07 182132" src="https://github.com/user-attachments/assets/5029fceb-756d-4f1c-b28a-e63a6924a4a9" />
+<img width="1894" height="880" alt="Screenshot 2025-08-07 182217" src="https://github.com/user-attachments/assets/4e14f623-7867-4f98-a236-b674927d40c2" />
+<img width="1898" height="877" alt="Screenshot 2025-08-07 182234" src="https://github.com/user-attachments/assets/2203a993-9d71-44a4-a12f-d8ae5d6b5640" />
+<img width="1894" height="595" alt="Screenshot 2025-08-07 182300" src="https://github.com/user-attachments/assets/eb36a0c7-de53-45d7-a692-b559055a1044" />
+
 
 <details>
 <summary>Watchlist Tab</summary>
