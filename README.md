@@ -1,6 +1,6 @@
-# 📈 StockTracker
+# StockItUp
 
-**StockTracker** is a responsive and theme-aware stock market tracking web application built entirely using **vanilla HTML, CSS, and JavaScript**. It integrates real-time data via the [Finnhub API](https://finnhub.io/) and also includes mock data as fallback for testing and offline use.
+**StockItUp** is a responsive and theme-aware stock market tracking web application built entirely using **vanilla HTML, CSS, and JavaScript**. It integrates real-time data via the [Finnhub API](https://finnhub.io/) and also includes mock data as fallback for testing and offline use.
 
 > 🚀 Track stocks like a pro. Visualize live prices, build watchlists, and follow global market trends — all in one beautiful frontend-only app.
 
