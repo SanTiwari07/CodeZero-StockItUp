@@ -106,22 +106,25 @@
 
 <details>
 <summary>Landing Page</summary>
-<img width="1895" height="967" alt="Screenshot 2025-08-07 182132" src="https://github.com/user-attachments/assets/5029fceb-756d-4f1c-b28a-e63a6924a4a9" />
-<img width="1894" height="880" alt="Screenshot 2025-08-07 182217" src="https://github.com/user-attachments/assets/4e14f623-7867-4f98-a236-b674927d40c2" />
-<img width="1894" height="595" alt="Screenshot 2025-08-07 182300" src="https://github.com/user-attachments/assets/eb36a0c7-de53-45d7-a692-b559055a1044" />
+
+<img width="1145" height="2975" alt="index page" src="https://github.com/user-attachments/assets/74628342-956d-4f93-bf35-6d6a5067b8c4" />
+
 </details>
 
 
 <details>
 <summary>Dashboard - Overview Tab</summary>
-<img src="assets/dashboard-overview.png" alt="Dashboard Overview Screenshot" />
+
+  <img width="1145" height="2200" alt="dashboard page" src="https://github.com/user-attachments/assets/c0de780e-24bd-4e33-a8b6-da814a42b3b3" />
+
 </details>
 
 
 
 <details>
 <summary>Watchlist Tab</summary>
-<img src="assets/watchlist.png" alt="Watchlist Screenshot" />
+<img width="1918" height="954" alt="Wishlist" src="https://github.com/user-attachments/assets/5978a94e-65a1-47da-8cba-d8c7ec61f557" />
+
 </details>
 
 ---
