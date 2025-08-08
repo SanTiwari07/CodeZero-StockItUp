@@ -1,15 +1,8 @@
-// Stock Tracker Application
-// Complete vanilla JavaScript implementation with Finnhub API integration
-// Fixed navigation and theme toggle functions
-
-// API Configuration
 const API_CONFIG = {
     FINNHUB_API_KEY: 'd25p1l1r01qhge4dmi7gd25p1l1r01qhge4dmi80',
     FINNHUB_BASE_URL: 'https://finnhub.io/api/v1',
     PROVIDER: 'finnhub' // 'finnhub' or 'mock'
 };
-
-// Application state
 const app = {
     currentPage: window.location.pathname.includes('dashboard.html') ? 'dashboard' : 'homepage',
     isDarkMode: false,
@@ -25,8 +18,6 @@ const app = {
     refreshInterval: null,
     chartInstance: null
 };
-
-// Mock data for fallback
 const MOCK_STOCKS = [
     {
         symbol: 'AAPL', name: 'Apple Inc.', price: 189.84, change: 2.45, changePercent: 1.31,
@@ -94,30 +85,22 @@ const MOCK_NEWS = [
     { title: 'Reliance Industries Reports Strong Q4 Results', source: 'Moneycontrol', category: 'indian', time: '6 hours ago' },
     { title: 'Global Supply Chain Disruptions Impact Manufacturing', source: 'Financial Times', category: 'international', time: '7 hours ago' }
 ];
-
-// Utility Functions
 function formatNumber(num, decimals = 2) {
     if (typeof num !== 'number' || isNaN(num)) return 'N/A';
     return num.toFixed(decimals);
 }
 
 function formatVolume(volume) {
-    // Fixed volume formatting - ensure proper handling of all volume values
     if (typeof volume !== 'number' || isNaN(volume) || volume === null || volume === undefined) {
         return 'N/A';
     }
     
-    // Handle zero or very small volumes
     if (volume === 0) return '0';
     if (volume < 1) return volume.toFixed(6);
-    
-    // Format large volumes
     if (volume >= 1e12) return `${(volume / 1e12).toFixed(2)}T`;
     if (volume >= 1e9) return `${(volume / 1e9).toFixed(2)}B`;
     if (volume >= 1e6) return `${(volume / 1e6).toFixed(1)}M`;
     if (volume >= 1e3) return `${(volume / 1e3).toFixed(1)}K`;
-    
-    // For smaller numbers, show with appropriate decimals
     if (volume >= 100) return Math.round(volume).toString();
     if (volume >= 10) return volume.toFixed(1);
     return volume.toFixed(2);
@@ -182,8 +165,6 @@ async function fetchStockQuote(symbol) {
             console.log(`No valid price data for ${symbol}, using mock data`);
             return getMockStockData(symbol);
         }
-        
-        // Enhanced volume handling - ensure we get a valid number
         let volume = 0;
         if (quote.v && typeof quote.v === 'number' && !isNaN(quote.v)) {
             volume = quote.v;
@@ -200,7 +181,7 @@ async function fetchStockQuote(symbol) {
             price: quote.c,
             change: quote.d || 0,
             changePercent: quote.dp || 0,
-            volume: volume, // Ensure volume is always a valid number
+            volume: volume,
             high: quote.h || quote.c,
             low: quote.l || quote.c,
             open: quote.o || quote.c,
@@ -246,7 +227,6 @@ async function fetchMarketIndices() {
                     return mockIndex || { name: index.name, symbol: index.symbol, value: 0, change: 0, changePercent: 0 };
                 }
             }),
-            // Add Indian indices from mock data
             ...MOCK_INDICES.slice(3)
         ]);
         
@@ -423,8 +403,6 @@ function scrollToFeatures() {
         featuresSection.scrollIntoView({ behavior: 'smooth' });
     }
 }
-
-// Dark Mode Functions - FIXED
 function initializeTheme() {
     const savedTheme = localStorage.getItem('stockTracker_theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -447,8 +425,6 @@ function applyTheme() {
     }
     updateChart();
 }
-
-// Video Modal Functions - FIXED
 function openVideoModal() {
     const modal = document.getElementById('videoModal');
     const video = document.getElementById('modalVideo');
@@ -456,7 +432,7 @@ function openVideoModal() {
     if (modal && video) {
         modal.style.display = 'flex';
         video.currentTime = 0; // Reset video to beginning
-        video.play().catch(e => console.log('Video autoplay prevented:', e)); // Auto-play when opened (with error handling)
+        video.play().catch(e => console.log('Video autoplay prevented:', e)); 
     }
 }
 
@@ -466,8 +442,8 @@ function closeVideoModal() {
     
     if (modal && video) {
         modal.style.display = 'none';
-        video.pause(); // Pause video when modal closes
-        video.currentTime = 0; // Reset to beginning
+        video.pause(); 
+        video.currentTime = 0; 
     }
 }
 
@@ -857,8 +833,6 @@ function drawCanvasChart(canvas) {
     }
 
     ctx.setLineDash([]);
-
-    // Draw line
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -875,8 +849,6 @@ function drawCanvasChart(canvas) {
     });
 
     ctx.stroke();
-
-    // Draw labels
     ctx.fillStyle = textColor;
     ctx.font = '12px Inter, sans-serif';
     ctx.textAlign = 'right';
@@ -887,8 +859,6 @@ function drawCanvasChart(canvas) {
         ctx.fillText(`${price.toFixed(2)}`, padding - 10, y + 5);
     }
 }
-
-// Tab Management
 function switchTab(tabName) {
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
@@ -906,8 +876,6 @@ function switchTab(tabName) {
         renderWatchlist();
     }
 }
-
-// News Functions
 function filterNews(category) {
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -926,8 +894,6 @@ async function refreshNews() {
         console.error('Failed to refresh news:', error);
     }
 }
-
-// Render Functions
 function renderDashboard() {
     renderMarketOverview();
     renderStockList();
@@ -1023,8 +989,6 @@ function renderSelectedStock() {
     
     const stock = app.selectedStock;
     const isInWatchlist = app.watchlist.includes(stock.symbol);
-    
-    // Debug log to check volume data
     console.log(`Rendering stock ${stock.symbol} with volume:`, stock.volume, 'Formatted:', formatVolume(stock.volume));
     
     container.innerHTML = `
@@ -1284,7 +1248,6 @@ function loadHomePageMarketData() {
         })
         .catch(error => {
             console.error('Failed to load homepage market data:', error);
-            // Fallback to mock data display
             container.innerHTML = `
                 <div class="market-card">
                     <div class="market-card-header">
@@ -1330,10 +1293,7 @@ function loadHomePageMarketData() {
             lucide.createIcons();
         });
 }
-
-// Page Initialization
 function initializePage() {
-    // Initialize theme first
     initializeTheme();
     
     if (app.currentPage === 'dashboard') {
@@ -1362,12 +1322,8 @@ function initializeDashboard() {
     }
 }
 
-// Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize everything
     initializePage();
-    
-    // Set up video modal event listeners if on homepage
     const modal = document.getElementById('videoModal');
     if (modal) {
         // Close modal when clicking outside the video
@@ -1378,7 +1334,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Close modal with Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeVideoModal();
@@ -1412,8 +1367,6 @@ window.addEventListener('beforeunload', () => {
         }
     }
 });
-
-// Error handling
 window.addEventListener('error', (event) => {
     console.error('Global error:', event.error);
     updateConnectionStatus('error');
