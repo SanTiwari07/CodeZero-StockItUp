@@ -7,9 +7,7 @@
 Real-time data • Theme-aware • Zero Dependencies
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/SanTiwari07/StockItUp)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![Finnhub API](https://img.shields.io/badge/Data-Finnhub-yellow)](https://finnhub.io/)
+
 
 ### [**View Live Demo**](https://santiwari07.github.io/CodeZero-StockItUp/)
 
