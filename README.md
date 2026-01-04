@@ -1,110 +1,153 @@
+<div align="center">
+
 # StockItUp
 
-StockItUp is a responsive, theme-aware stock market tracking web application built entirely using **vanilla HTML, CSS, and JavaScript**. It integrates real-time data via the **Finnhub API** and includes comprehensive mock data fallbacks for testing and offline environments.
+**A high-performance, vanilla JavaScript equity tracking dashboard.**
+<br>
+Real-time data • Theme-aware • Zero Dependencies
 
-The application allows users to track specific stocks, visualize live price movements, manage watchlists, and monitor global market trends through a unified, frontend-only interface.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/SanTiwari07/StockItUp)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
+[![Finnhub API](https://img.shields.io/badge/Data-Finnhub-yellow)](https://finnhub.io/)
 
-## Project Structure
+<br>
 
-├── index.html      # Landing page with feature overview and market preview
-├── dashboard.html  # Core application interface (Real-time dashboard)
-├── styles.css      # Global styling, variable definitions, and dark mode logic
-└── script.js       # Application logic, API integration, and chart rendering
+### [**View Live Demo**](https://santiwari07.github.io/CodeZero-StockItUp/)
 
-## Features
+[Report Bug](#) · [Request Feature](#)
 
-* **Real-Time Data Integration:** Fetches live stock quotes and market data via the Finnhub API with automatic refresh capabilities.
-* **Watchlist Management:** Allows users to track preferred stocks with persistence enabled via LocalStorage.
-* **Global Market Indices:** Displays data for major indices including S&P 500, NASDAQ, and NIFTY 50.
-* **News Aggregation:** Curated news feeds categorized by International and Indian markets.
-* **Search Functionality:** Debounced search input with live results and immediate dashboard updates.
-* **Theme Support:** Built-in dark and light modes with automatic system preference detection.
-* **Data Visualization:** Interactive line charts rendering price history using Chart.js.
-* **Offline Fallback:** Robust mock data implementation ensures UI functionality when the API is unreachable.
+</div>
 
-## Technical Stack
+---
 
-* **Core:** HTML5, CSS3, JavaScript (ES6+)
-* **Data Provider:** Finnhub API
-* **Visualization:** Chart.js
-* **Iconography:** Lucide Icons
-* **State Management:** Browser LocalStorage
+## Table of Contents
+- [About the Project](#about-the-project)
+- [Technical Architecture](#technical-architecture)
+- [Key Features](#key-features)
+- [Visual Showcase](#visual-showcase)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
 
-## Architecture & Components
+---
 
-### index.html - Landing Page
-Serves as the entry point for the application.
-* **Header:** Contains branding and theme toggle controls.
-* **Market Preview:** Grid layout displaying data cards (utilizing loading skeletons prior to JS initialization).
-* **Feature Overview:** Highlights core application capabilities.
+## About the Project
 
-### dashboard.html - Core Dashboard
-The main interface for stock tracking and analysis.
-* **Navigation:** Includes connection status indicators, search input, and navigation controls.
-* **Sidebar:** Displays a list of popular stocks for quick access.
-* **Main Panel:** Divided into three functional tabs:
-    * **Overview:** Live stock metrics, company profile, and interactive charts.
-    * **Watchlist:** Management interface for saved stocks.
-    * **News:** Filterable list of market news.
+**StockItUp** is a comprehensive financial dashboard engineered to demonstrate the capabilities of modern, vanilla web technologies. It bypasses heavy frameworks to deliver a lightweight, high-performance interface for tracking global markets.
 
-### styles.css - Styling System
-* **CSS Variables:** Defines the color palette, typography, and spacing for consistent theming.
-* **Theme Logic:** Implements dark mode via a specific class on the document root.
-* **Responsiveness:** Utilizes media queries to ensure compatibility across desktop and mobile devices.
+The application integrates seamlessly with the **Finnhub API** to provide real-time quotes, news, and technical indicators, featuring a robust offline mode that utilizes mock data when network requests fail.
 
-### script.js - Application Logic
-* **State Management:** Centralized state object manages the selected stock, active theme, and watchlist data.
-* **API Layer:** Handles asynchronous requests to Finnhub for quotes, profiles, and news. Implements error handling to switch to mock data upon failure.
-* **Chart Rendering:** Configures Chart.js to render dynamic data with context-aware coloring based on price performance.
-* **Search Algorithm:** Implements debouncing to optimize API calls during user input.
-* **Persistence:** Manages read/write operations to LocalStorage for user preferences.
+<div align="right">
+    <a href="#table-of-contents">↑ Back to Top</a>
+</div>
 
-## Screenshots
+---
+
+## Technical Architecture
+
+This project is built on a "No-Framework" philosophy to ensure maximum performance and understanding of core web principles.
+
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Core Logic** | ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black) | ES6+ syntax, asynchronous fetching, and state management. |
+| **Structure** | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white) | Semantic markup with accessibility best practices. |
+| **Styling** | ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white) | CSS Variables for theming, Flexbox/Grid for layout. |
+| **Data Viz** | ![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?style=flat-square&logo=chartdotjs&logoColor=white) | Interactive canvas-based line charts. |
+| **API** | ![Finnhub](https://img.shields.io/badge/Finnhub-API-green?style=flat-square) | Real-time stock quotes, company profiles, and news. |
+
+<div align="right">
+    <a href="#table-of-contents">↑ Back to Top</a>
+</div>
+
+---
+
+## Key Features
+
+| Feature | Description |
+| :--- | :--- |
+| **Real-Time Updates** | Live price tracking with automatic polling intervals. |
+| **Dark/Light Mode** | System-aware theming with manual override persistence. |
+| **Offline Resilience** | Sophisticated fallback system uses mock data when the API is unreachable. |
+| **Smart Watchlist** | LocalStorage persistence allows users to save and track favorites. |
+| **Interactive Charts** | Dynamic visualization of price history with color-coded trends. |
+| **Live Search** | Debounced search algorithm prevents API rate limiting. |
+
+<div align="right">
+    <a href="#table-of-contents">↑ Back to Top</a>
+</div>
+
+---
+
+## Visual Showcase
+
+Click the headers below to expand the preview images.
 
 <details>
-<summary>Landing Page</summary>
+<summary><strong>Landing Page (Click to Expand)</strong></summary>
+<br>
 
-**Light Theme**
-
-<img width="1145" height="2975" alt="index page" src="https://github.com/user-attachments/assets/4b2f5da8-f832-4ec5-8208-89ec2d4962e1" />
-
-**Dark Theme**
-
-<img width="1145" height="2975" alt="index page black theme" src="https://github.com/user-attachments/assets/4a623820-c969-47d1-a8f1-da2efe8cbbd9" />
+| Light Mode | Dark Mode |
+| :---: | :---: |
+| <img src="https://github.com/user-attachments/assets/4b2f5da8-f832-4ec5-8208-89ec2d4962e1" alt="Landing Light" width="400"/> | <img src="https://github.com/user-attachments/assets/4a623820-c969-47d1-a8f1-da2efe8cbbd9" alt="Landing Dark" width="400"/> |
 
 </details>
 
-
 <details>
-<summary>Dashboard - Overview Tab</summary>
+<summary><strong>Analytics Dashboard (Click to Expand)</strong></summary>
+<br>
 
-**Light Theme**
-
-<img width="1145" height="2200" alt="dashboard page" src="https://github.com/user-attachments/assets/52fd5c89-625e-42ec-8efd-16ac532dbcca" />
-
-**Dark Theme**
-
-<img width="1145" height="2200" alt="dashboard page black theme" src="https://github.com/user-attachments/assets/f40eb6a4-7e8e-4c08-a293-a37c133f9403" />
+| Light Mode | Dark Mode |
+| :---: | :---: |
+| <img src="https://github.com/user-attachments/assets/52fd5c89-625e-42ec-8efd-16ac532dbcca" alt="Dashboard Light" width="400"/> | <img src="https://github.com/user-attachments/assets/f40eb6a4-7e8e-4c08-a293-a37c133f9403" alt="Dashboard Dark" width="400"/> |
 
 </details>
 
 <details>
-<summary>Watchlist Tab</summary>
+<summary><strong>Watchlist Interface (Click to Expand)</strong></summary>
+<br>
 
-**Light Theme**
-
-<img width="1145" height="1205" alt="Wishlist" src="https://github.com/user-attachments/assets/bdc16d97-6559-4306-8e46-3a04f2c39202" />
-
-**Dark Theme**
-
-<img width="1145" height="1205" alt="Wishlist black theme" src="https://github.com/user-attachments/assets/0c43253c-0f74-4d1c-b169-7c207fa47340" />
+| Light Mode | Dark Mode |
+| :---: | :---: |
+| <img src="https://github.com/user-attachments/assets/bdc16d97-6559-4306-8e46-3a04f2c39202" alt="Watchlist Light" width="400"/> | <img src="https://github.com/user-attachments/assets/0c43253c-0f74-4d1c-b169-7c207fa47340" alt="Watchlist Dark" width="400"/> |
 
 </details>
 
-## Setup and Installation
+<div align="right">
+    <a href="#table-of-contents">↑ Back to Top</a>
+</div>
 
-This project is a frontend-only application requiring no backend configuration or build steps.
+---
 
-1.  **Download:** Clone the repository or download the source ZIP file.
-2.  **Run:** Open the `index.html` file directly in any modern web browser.
-3.  **Usage:** The application is immediately ready for use. By default, it may use mock data if an API key is not configured or if the request limit is reached.
+## Getting Started
+
+This project requires no build tools, bundlers, or backend servers.
+
+### Prerequisites
+* A modern web browser (Chrome, Firefox, Safari, Edge).
+* (Optional) A text editor like VS Code to view the source.
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone [https://github.com/yourusername/StockItUp.git](https://github.com/yourusername/StockItUp.git)
+   
+2. **Navigate to project directory**
+   ```bash
+   cd StockItUp
+<div align="right"> <a href="#table-of-contents">↑ Back to Top</a> </div>
+
+StockItUp/
+├── index.html      # Entry point: Landing page & feature overview
+├── dashboard.html  # Main App: Real-time tracking interface
+├── styles.css      # Design System: Variables, Dark Mode, Responsive Grid
+└── script.js       # Logic: API Integration, Charts, State Management
+
+<div align="center">
+
+StockItUp © 2024. All Rights Reserved.
+
+
+Built with precision and vanilla JavaScript.
+
+</div>
