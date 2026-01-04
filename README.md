@@ -13,8 +13,6 @@ Real-time data • Theme-aware • Zero Dependencies
 
 ### [**View Live Demo**](https://santiwari07.github.io/CodeZero-StockItUp/)
 
-[Report Bug](#) · [Request Feature](#)
-
 </div>
 
 ---
